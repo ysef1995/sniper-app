@@ -2,81 +2,93 @@ import streamlit as st
 import math
 import time
 
-# إعداد الواجهة
-st.set_page_config(page_title="SNIPER V78.0 INTELLIGENT", layout="wide")
+# إعداد الواجهة الاحترافية (Dark Mode)
+st.set_page_config(page_title="SNIPER V79.0 - FULL ODDS", layout="wide")
 
 def poisson_probability(k, lmbda):
     return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-# --- محرك قراءة التحليل النصي (الذكاء الاصطناعي المبسط) ---
-def analyze_text_report(report_text, current_h_xg, current_a_xg):
-    # الكلمات التي توحي بمباراة مغلقة (تمنع 3-1)
-    defensive_keywords = ["دفاعي", "مغلقة", "حذر", "غيابات هجومية", "صعب التسجيل", "under", "defensive"]
-    # الكلمات التي توحي بانفجار هجومي (تدعم 3-1)
-    offensive_keywords = ["اكتساح", "هجوم كاسح", "ضعف دفاعي", "over", "offensive", "open match"]
-    
-    adjustment = 1.0
-    for word in defensive_keywords:
-        if word in report_text.lower():
-            adjustment = 0.7  # خفض الأهداف المتوقعة بنسبة 30%
-            break
-    for word in offensive_keywords:
-        if word in report_text.lower():
-            adjustment = 1.3  # رفع الأهداف المتوقعة بنسبة 30%
-            break
-            
-    return current_h_xg * adjustment, current_a_xg * adjustment
+st.title("🚜 SNIPER V79.0 - محرك الأسواق المتكامل")
 
-st.title("🧠 SNIPER V78.0 - المحلل الذكي للـ ID")
+# 1. الأسماء والـ IDs
+col_team, col_id = st.columns(2)
+with col_team:
+    h_n = st.text_input("🏠 اسم المضيف:", "Tunisie")
+    a_n = st.text_input("✈️ اسم الضيف:", "Ouganda")
+with col_id:
+    h_id = st.text_input("🆔 ID المضيف:", "101")
+    a_id = st.text_input("🆔 ID الضيف:", "102")
 
-# إدخال البيانات الأساسية
-col1, col2 = st.columns(2)
-with col1:
-    h_name = st.text_input("🏠 الفريق المضيف:", "Tunisie")
-    h_id = st.text_input("🆔 ID الفريق (للمراجعة):", "12345")
-with col2:
-    a_name = st.text_input("✈️ الفريق الضيف:", "Ouganda")
-    odd_under25 = st.number_input("📉 Odd Under 2.5 (فلتر الأمان):", value=1.60)
-
-# خانة التحليل النصي (هنا تضع ما قرأته في الـ ID)
-st.subheader("📝 التحليل النصي المستخلص من الـ ID:")
-analysis_input = st.text_area("أدخل ملخص التحليل (مثلاً: مباراة دفاعية قوية، أو غياب المهاجمين):", 
-                              placeholder="مثال: الفريق المضيف يلعب بطريقة دفاعية بحتة والضيف يعاني هجومياً...")
-
-# إدخال الأودز اليدوية
 st.markdown("---")
-st.subheader("💰 أودز الأسواق")
-c1, c2, c3 = st.columns(3)
-with c1: odd_1 = st.number_input("Odd Win 1:", value=1.50)
-with c2: odd_o2 = st.number_input("Odd Over 2.5:", value=2.20)
-with c3: odd_by = st.number_input("Odd BTTS Yes:", value=2.10)
 
-if st.button("🚀 تشغيل التحليل المقارن"):
-    # 1. إحصائيات مبدئية
-    base_h_xg = (1 / odd_1) * 2.0
-    base_a_xg = 0.8
+# 2. إدخال جميع الأودز (1X2, Over/Under, BTTS)
+st.subheader("💰 إدخال أودز الأسواق يدوياً (Manual Odds)")
+o1, o2, o3 = st.columns(3)
+with o1:
+    st.write("**السوق الرئيسي (1X2)**")
+    odd_1 = st.number_input(f"Odd Win {h_n}:", value=1.40)
+    odd_x = st.number_input("Odd Draw (X):", value=4.50)
+    odd_2 = st.number_input(f"Odd Win {a_n}:", value=8.00)
+with o2:
+    st.write("**الأهداف (2.5)**")
+    odd_over = st.number_input("Odd Over 2.5:", value=1.90)
+    odd_under = st.number_input("Odd Under 2.5:", value=1.80)
+with o3:
+    st.write("**التسجيل (BTTS)**")
+    odd_btts_y = st.number_input("Odd BTTS Yes:", value=2.10)
+    odd_btts_n = st.number_input("Odd BTTS No:", value=1.70)
+
+st.markdown("---")
+
+# 3. إحصائيات الهيمنة (V37.0)
+st.subheader("📊 إحصائيات الهيمنة (Dominance Stats)")
+s1, s2 = st.columns(2)
+with s1:
+    h_xg = st.number_input("xG (Home):", value=2.0)
+    h_ppg = st.number_input("PPG (Home):", value=2.2)
+with s2:
+    a_xg = st.number_input("xG (Away):", value=0.7)
+    a_ppg = st.number_input("PPG (Away):", value=0.8)
+
+if st.button("🚀 تشغيل المحرك وطباعة التقرير النهائي"):
+    with st.spinner("⏳ جاري مراجعة الأودز ومنطق الهيمنة..."):
+        time.sleep(2)
+
+    # حساب القوة النسبية بناءً على الأودز والهيمنة
+    # نستخدم الأودز لضبط الـ xG الحقيقي (إذا كان Under منخفض، نقلل الأهداف)
+    final_h_xg = h_xg * (1 / odd_1)
+    final_a_xg = a_xg * (1 / odd_2) * 5 # تعديل لوزن الفريق الضعيف
     
-    # 2. 🔥 المعالجة الذكية للنص (هذا هو طلبك) 🔥
-    final_h, final_a = analyze_text_report(analysis_input, base_h_xg, base_a_xg)
-    
-    # 3. حساب الاحتمالات
+    # فلتر منع العبث: إذا كان Odd Under 2.5 أقل من 1.80، نكبح الجماح الهجومي
+    if odd_under < 1.80:
+        final_h_xg *= 0.8
+        final_a_xg *= 0.6
+
+    # حساب الاحتمالات
     scores = []
-    for h in range(5):
-        for a in range(5):
-            p = poisson_probability(h, final_h) * poisson_probability(a, final_a)
+    for h in range(6):
+        for a in range(6):
+            p = poisson_probability(h, final_h_xg) * poisson_probability(a, final_a_xg)
             scores.append({'s': f"{h}-{a}", 'p': p, 'total': h+a})
     
     scores.sort(key=lambda x: x['p'], reverse=True)
     
-    # فلتر Odds للواقعية
-    if odd_under25 < 1.70:
+    # اختيار النتيجة بناءً على سياق الأهداف (Under/Over)
+    if odd_under < odd_over:
         final_res = [s for s in scores if s['total'] <= 2][0]
     else:
         final_res = scores[0]
 
-    # العرض النهائي
-    st.markdown(f"<div style='text-align: center; border: 3px solid #f1c40f; padding: 20px; border-radius: 15px;'>"
-                f"<h2>التوقع النهائي بناءً على التحليل النصي والأودز</h2>"
-                f"<h1 style='font-size: 60px; color: #f1c40f;'>{h_name} {final_res['s']} {a_name}</h1>"
+    # العرض النهائي للفيديو
+    st.markdown(f"<div style='text-align: center; background: #0e1117; padding: 40px; border: 4px solid #f1c40f; border-radius: 20px;'>"
+                f"<h1 style='color: white;'>{h_n} <span style='color: #f1c40f;'>{final_res['s']}</span> {a_n}</h1>"
+                f"<h3 style='color: #8b949e;'>النتيجة المدققة بناءً على كامل أودز الأسواق</h3>"
                 f"</div>", unsafe_allow_html=True)
+
+    # طباعة احتمالات الأسواق
+    st.markdown("---")
+    st.subheader("📋 طباعة توقعات الأسواق المقارنة:")
+    st.write(f"✅ **سوق 1X2:** {h_n} (بناءً على Odd {odd_1})")
+    st.write(f"⚽ **سوق BTTS:** {'نعم' if odd_btts_y < 2.0 else 'لا'} (بناءً على Odd {odd_btts_y})")
+    st.write(f"📈 **سوق الأهداف:** {'Under 2.5' if odd_under < odd_over else 'Over 2.5'}")
     
