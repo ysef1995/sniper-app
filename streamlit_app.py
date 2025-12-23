@@ -1,79 +1,82 @@
 import streamlit as st
 import math
 import time
-import random
 
-# --- إعدادات الواجهة ---
-st.set_page_config(page_title="SNIPER V75.0 AUTO-EXACT", page_icon="🎯", layout="wide")
+# إعداد الواجهة
+st.set_page_config(page_title="SNIPER V78.0 INTELLIGENT", layout="wide")
 
 def poisson_probability(k, lmbda):
     return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-# --- محرك توليد الـ xG التلقائي بناءً على الـ IDs والـ Odds ---
-def generate_auto_stats(h_id, a_id, odd_h, odd_a):
-    random.seed(str(h_id) + str(a_id))
-    # تحويل الـ Odds إلى قوة هجومية (كلما قل الـ Odd زاد الـ xG)
-    h_base_xg = (1 / odd_h) * 3.5 
-    a_base_xg = (1 / odd_a) * 2.5
-    return round(h_base_xg, 2), round(a_base_xg, 2)
-
-def calculate_overall_rating(xg, xga, ppg):
-    return (xg * 30) - (xga * 15) + (ppg * 20)
-
-# --- المحرك الاستراتيجي للنتيجة العريضة (الحل لمشكلة 3-1) ---
-def get_explosive_score(h_xg, a_xg, h_rate, a_rate):
-    scores = []
-    for h in range(6):
-        for a in range(6):
-            p = poisson_probability(h, h_xg) * poisson_probability(a, a_xg)
-            scores.append({'s': f"{h}-{a}", 'p': p, 'h_g': h, 'a_g': a})
+# --- محرك قراءة التحليل النصي (الذكاء الاصطناعي المبسط) ---
+def analyze_text_report(report_text, current_h_xg, current_a_xg):
+    # الكلمات التي توحي بمباراة مغلقة (تمنع 3-1)
+    defensive_keywords = ["دفاعي", "مغلقة", "حذر", "غيابات هجومية", "صعب التسجيل", "under", "defensive"]
+    # الكلمات التي توحي بانفجار هجومي (تدعم 3-1)
+    offensive_keywords = ["اكتساح", "هجوم كاسح", "ضعف دفاعي", "over", "offensive", "open match"]
     
-    scores.sort(key=lambda x: x['p'], reverse=True)
-    
-    # منطق "الاكتساح": إذا كان المضيف أقوى بـ 25 نقطة
-    if h_rate - a_rate > 25:
-        # نبحث عن أول نتيجة في التوب 15 تعكس تسجيل الفريقين مع فوز عريض (مثل 3-1)
-        for s in scores[:15]:
-            if s['h_g'] >= 3 and s['a_g'] >= 1:
-                return s
-    return scores[0]
+    adjustment = 1.0
+    for word in defensive_keywords:
+        if word in report_text.lower():
+            adjustment = 0.7  # خفض الأهداف المتوقعة بنسبة 30%
+            break
+    for word in offensive_keywords:
+        if word in report_text.lower():
+            adjustment = 1.3  # رفع الأهداف المتوقعة بنسبة 30%
+            break
+            
+    return current_h_xg * adjustment, current_a_xg * adjustment
 
-st.title("🎯 SNIPER V75.0 - محرك التوقع التلقائي")
+st.title("🧠 SNIPER V78.0 - المحلل الذكي للـ ID")
 
-# إدخال الـ IDs والـ Odds فقط (الروبوت سيتكفل بالباقي)
+# إدخال البيانات الأساسية
 col1, col2 = st.columns(2)
 with col1:
     h_name = st.text_input("🏠 الفريق المضيف:", "Tunisie")
-    h_id = st.text_input("🆔 ID المضيف:", "123")
-    odd_h = st.number_input(f"Odd Win {h_name}:", value=1.35)
+    h_id = st.text_input("🆔 ID الفريق (للمراجعة):", "12345")
 with col2:
     a_name = st.text_input("✈️ الفريق الضيف:", "Ouganda")
-    a_id = st.text_input("🆔 ID الضيف:", "456")
-    odd_a = st.number_input(f"Odd Win {a_name}:", value=8.50)
+    odd_under25 = st.number_input("📉 Odd Under 2.5 (فلتر الأمان):", value=1.60)
 
-if st.button("🚀 توقع النتيجة الدقيقة (3-1/1-0)"):
-    with st.spinner("⏳ جاري استنتاج سيناريو المباراة..."):
-        time.sleep(2)
+# خانة التحليل النصي (هنا تضع ما قرأته في الـ ID)
+st.subheader("📝 التحليل النصي المستخلص من الـ ID:")
+analysis_input = st.text_area("أدخل ملخص التحليل (مثلاً: مباراة دفاعية قوية، أو غياب المهاجمين):", 
+                              placeholder="مثال: الفريق المضيف يلعب بطريقة دفاعية بحتة والضيف يعاني هجومياً...")
+
+# إدخال الأودز اليدوية
+st.markdown("---")
+st.subheader("💰 أودز الأسواق")
+c1, c2, c3 = st.columns(3)
+with c1: odd_1 = st.number_input("Odd Win 1:", value=1.50)
+with c2: odd_o2 = st.number_input("Odd Over 2.5:", value=2.20)
+with c3: odd_by = st.number_input("Odd BTTS Yes:", value=2.10)
+
+if st.button("🚀 تشغيل التحليل المقارن"):
+    # 1. إحصائيات مبدئية
+    base_h_xg = (1 / odd_1) * 2.0
+    base_a_xg = 0.8
     
-    # 1. توليد إحصائيات تلقائية من الـ Odds
-    auto_h_xg, auto_a_xg = generate_auto_stats(h_id, a_id, odd_h, odd_a)
+    # 2. 🔥 المعالجة الذكية للنص (هذا هو طلبك) 🔥
+    final_h, final_a = analyze_text_report(analysis_input, base_h_xg, base_a_xg)
     
-    # 2. حساب التقييم
-    h_rate = calculate_overall_rating(auto_h_xg, 1.0, 2.2)
-    a_rate = calculate_overall_rating(auto_a_xg, 2.0, 0.8)
+    # 3. حساب الاحتمالات
+    scores = []
+    for h in range(5):
+        for a in range(5):
+            p = poisson_probability(h, final_h) * poisson_probability(a, final_a)
+            scores.append({'s': f"{h}-{a}", 'p': p, 'total': h+a})
     
-    # 3. اختيار النتيجة بـ "منطق الاكتساح"
-    final_res = get_explosive_score(auto_h_xg, auto_a_xg, h_rate, a_rate)
+    scores.sort(key=lambda x: x['p'], reverse=True)
     
-    # عرض النتيجة بوضوح للفيديو
-    st.markdown(f"<div style='text-align: center; background: #161b22; padding: 30px; border-radius: 20px; border: 2px solid #f1c40f;'>"
-                f"<h1 style='color: white; margin: 0;'>{h_name} <span style='color: #f1c40f;'>{final_res['s']}</span> {a_name}</h1>"
-                f"<p style='color: #8b949e;'>تم التحليل بناءً على منطق الهيمنة القصوى</p>"
+    # فلتر Odds للواقعية
+    if odd_under25 < 1.70:
+        final_res = [s for s in scores if s['total'] <= 2][0]
+    else:
+        final_res = scores[0]
+
+    # العرض النهائي
+    st.markdown(f"<div style='text-align: center; border: 3px solid #f1c40f; padding: 20px; border-radius: 15px;'>"
+                f"<h2>التوقع النهائي بناءً على التحليل النصي والأودز</h2>"
+                f"<h1 style='font-size: 60px; color: #f1c40f;'>{h_name} {final_res['s']} {a_name}</h1>"
                 f"</div>", unsafe_allow_html=True)
-
-    # طباعة التوقعات البديلة للتأكد
-    st.markdown("---")
-    st.subheader("📊 طباعة سيناريوهات بديلة:")
-    st.write(f"1️⃣ **السيناريو الهجومي (3-1):** إذا استغل {h_name} ثغرات الدفاع.")
-    st.write(f"2️⃣ **السيناريو الدفاعي (1-0):** إذا تراجع {a_name} لمنطقة الجزاء.")
     
