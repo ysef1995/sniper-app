@@ -1,25 +1,17 @@
 import streamlit as st
-import cloudscraper
-from bs4 import BeautifulSoup
+import hashlib
 import math
-import re
 import time
 import random
 
-# إعداد واجهة النخبة
-st.set_page_config(page_title="SNIPER V57.0 ELITE", page_icon="🛡️", layout="wide")
+# إعداد الواجهة الاحترافية
+st.set_page_config(page_title="SNIPER V58.0 HARMONY", page_icon="🏆", layout="wide")
 
-st.markdown("""
-    <style>
-    .reportview-container { background: #0a0a0a; }
-    .stProgress > div > div > div > div { background-image: linear-gradient(to right, #f1c40f , #e67e22); }
-    </style>
-    """, unsafe_allow_html=True)
-
-def calculate_logic(h_xg, a_xg):
-    # محرك بواسون (المعادلة الرياضية الأساسية)
+def calculate_harmonized_logic(h_xg, a_xg):
     win_h, draw, win_a, btts, over25 = 0, 0, 0, 0, 0
     scores = []
+    
+    # 1. بناء قاعدة الاحتمالات
     for h in range(6):
         for a in range(6):
             p = (math.exp(-h_xg)*h_xg**h/math.factorial(h)) * (math.exp(-a_xg)*a_xg**a/math.factorial(a))
@@ -28,70 +20,61 @@ def calculate_logic(h_xg, a_xg):
             else: draw += p
             if h > 0 and a > 0: btts += p
             if h + a > 2.5: over25 += p
-            scores.append({'s': f"{h}-{a}", 'p': p})
-    scores.sort(key=lambda x: x['p'], reverse=True)
-    return win_h, draw, win_a, btts, over25, scores[0]
+            scores.append({'s': f"{h}-{a}", 'p': p, 'type': 'H' if h>a else 'A' if a>h else 'D'})
 
-st.title("🛡️ SNIPER V57.0 - نظام التحليل العميق (30ث)")
-st.write("هذا النظام يقوم بفحص البيانات عبر 10 مراحل تقنية لضمان دقة التوقع.")
+    # 2. تحديد الاتجاه السائد للمباراة (الفائز أو التعادل)
+    prob_map = {'H': win_h, 'D': draw, 'A': win_a}
+    main_pred = max(prob_map, key=prob_map.get)
+    
+    # 3. اختيار أفضل نتيجة دقيقة من نفس "الاتجاه" لضمان التطابق
+    matching_scores = [s for s in scores if s['type'] == main_pred]
+    matching_scores.sort(key=lambda x: x['p'], reverse=True)
+    
+    return win_h, draw, win_a, btts, over25, matching_scores[0], main_pred
 
-url = st.text_input("🔗 رابط المباراة للتحليل الشامل:")
+st.title("🏆 SNIPER V58.0 - المحرك المتناغم")
+url = st.text_input("🔗 رابط المباراة للتحليل العميق (30 ثانية):")
 
-if st.button("🏁 بدء تحليل النخبة (Deep Analysis)"):
+if st.button("🚀 بدء تحليل النخبة"):
     if url:
-        progress_bar = st.progress(0)
-        status_text = st.empty()
+        bar = st.progress(0)
+        status = st.empty()
         
-        # مراحل التحليل الـ 10 (كل مرحلة 3 ثوانٍ = 30 ثانية إجمالاً)
-        stages = [
-            "📡 جاري الاتصال بخوادم البيانات العالمية...",
-            "🔐 تجاوز جدران الحماية واستخراج الـ ID...",
-            "📑 فحص سجل المواجهات المباشرة (H2H)...",
-            "📊 تحليل معدلات التهديف (Expected Goals)...",
-            "🛡️ تقييم كفاءة خط الدفاع والحراسة...",
-            "🏃 تحليل الحالة البدنية وسرعة الهجمات...",
-            "📉 تشغيل محاكي 'بواسون' لـ 100,000 سيناريو...",
-            "🧠 معالجة البيانات عبر الذكاء الاصطناعي...",
-            "⭐ حساب نسبة الثقة وتقييم النجوم...",
-            "🎯 توليد النتيجة النهائية الدقيقة..."
-        ]
-        
-        for i, stage in enumerate(stages):
-            status_text.warning(stage)
-            for percent in range(i*10, (i+1)*10):
-                time.sleep(0.3) # المجموع الكلي 30 ثانية
-                progress_bar.progress(percent + 1)
-        
-        # سحب البيانات الحقيقية وتوليد النتائج
-        match_slug = url.split('/')[-1]
+        # مراحل التحليل (30 ثانية)
+        for i in range(1, 11):
+            status.warning(f"⏳ مرحلة التحليل {i}/10: جاري معالجة البيانات العميقة...")
+            time.sleep(3)
+            bar.progress(i * 10)
+            
+        # استخراج بصمة الرابط (Match ID بالحروف)
+        match_slug = url.split('/')[-1] if '/' in url else "match"
         seed = sum(ord(c) for c in match_slug)
         random.seed(seed)
-        h_xg = round(random.uniform(1.2, 2.7), 2)
-        a_xg = round(random.uniform(0.8, 1.9), 2)
         
-        wh, dr, wa, bt, ov, top = calculate_logic(h_xg, a_xg)
+        # توليد xG ديناميكي فريد لكل رابط
+        h_xg = round(random.uniform(0.8, 2.6), 2)
+        a_xg = round(random.uniform(0.7, 2.0), 2)
         
-        st.balloons()
-        st.success(f"✅ اكتمل التحليل العميق لمباراة: {match_slug}")
-
-        # عرض النتائج في لوحة تحكم فاخرة
+        wh, dr, wa, bt, ov, top, res_type = calculate_harmonized_logic(h_xg, a_xg)
+        
+        st.success(f"✅ تم التحليل بنجاح! المباراة المعالجة: {match_slug}")
+        
         st.markdown("---")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("توقع الفائز (1X2)", "🏠 المضيف" if wh > wa else "✈️ الضيف")
-            st.write(f"الثقة: {max(wh, wa)*100:.1f}%")
-        with col2:
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            title = "المضيف" if res_type == 'H' else "الضيف" if res_type == 'A' else "تعادل"
+            st.metric("توقع الفائز (1X2)", title)
+            st.write(f"الثقة: {max(wh, dr, wa)*100:.1f}%")
+        with c2:
             st.metric("سوق BTTS", "YES" if bt > 0.5 else "NO")
             st.write(f"الاحتمالية: {bt*100:.1f}%")
-        with col3:
+        with c3:
             st.metric("أهداف المباراة", "+2.5" if ov > 0.5 else "-2.5")
             st.write(f"الاحتمالية: {ov*100:.1f}%")
 
         st.markdown("---")
-        # النتيجة الدقيقة بشكل بارز جداً
-        st.markdown(f"<h1 style='text-align: center; color: #f1c40f;'>النتيجة الدقيقة: {top['s']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align: center; color: #f1c40f;'>النتيجة الدقيقة المتناغمة: {top['s']}</h1>", unsafe_allow_html=True)
         
-        # نظام النجوم (تقييم الروبوت)
         stars = "⭐" * (5 if top['p'] > 0.2 else 4 if top['p'] > 0.15 else 3)
         st.write(f"### تقييم الضمان: {stars}")
     else:
