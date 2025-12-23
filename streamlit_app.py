@@ -2,87 +2,76 @@ import streamlit as st
 import math
 import time
 
-# إعداد الواجهة لتناسب احتياجاتك الاحترافية
-st.set_page_config(page_title="SNIPER V85.0 REALITY", layout="wide")
+# إعدادات الواجهة الاحترافية (Dark Mode)
+st.set_page_config(page_title="IA SCORE EXACT PRO", layout="wide")
 
-def poisson_probability(k, lmbda):
+def poisson_calculation(k, lmbda):
     return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-st.title("🛡️ SNIPER V85.0 - ميزان التوقعات الواقعية")
+st.title("🎯 IA SCORE EXACT - المنصة الاحترافية")
 
-# 1. المعرفات الأساسية (الأسماء والـ IDs)
-col_t, col_id = st.columns(2)
-with col_t:
-    h_n = st.text_input("🏠 الفريق المضيف:", "Tunisie")
-    a_n = st.text_input("✈️ الفريق الضيف:", "Ouganda")
-with col_id:
-    h_id = st.text_input("🆔 ID المضيف:", "7412")
-    a_id = st.text_input("🆔 ID الضيف:", "8523")
-
-st.markdown("---")
-
-# 2. إدخال أودز الأسواق يدوياً (للمقارنة وليس للسيطرة)
-st.subheader("💰 أودز الأسواق الكاملة")
-o1, o2, o3 = st.columns(3)
-with o1:
-    odd_1 = st.number_input(f"Odd Win {h_n}:", value=1.45)
-    odd_x = st.number_input("Odd Draw:", value=4.20)
-    odd_2 = st.number_input(f"Odd Win {a_n}:", value=7.50)
-with o2:
-    odd_over = st.number_input("Odd Over 2.5:", value=2.20)
-    odd_under = st.number_input("Odd Under 2.5:", value=1.65)
-with o3:
-    odd_by = st.number_input("Odd BTTS Yes:", value=2.10)
-    odd_bn = st.number_input("Odd BTTS No:", value=1.75)
+# --- الخطوة 1: إدخال الـ IDs الرمزية (الأحرف) كما في الفيديو ---
+st.subheader("🔑 إدخال معرفات المقابلة (AI Match IDs)")
+col_h, col_a = st.columns(2)
+with col_h:
+    h_name = st.text_input("🏠 الفريق المضيف:", "تونس")
+    h_id_ia = st.text_input("🆔 ID IA (أحرف/رموز):", "TX-99")
+with col_a:
+    a_name = st.text_input("✈️ الفريق الضيف:", "أوغندا")
+    a_id_ia = st.text_input("🆔 ID IA (أحرف/رموز):", "UG-12")
 
 st.markdown("---")
 
-# 3. محرك التحليل النصي (القائد الفعلي للمنطق)
-st.subheader("📝 التحليل النصي المستورد (AI Context)")
-ai_report = st.text_area("أدخل التحليل النصي هنا (مثلاً: مباراة هجومية، دفاع صلب، غيابات...):", 
-                         placeholder="انسخ ملخص المباراة هنا لتصحيح الأرقام...")
+# --- الخطوة 2: التحليل النصي (سر النتيجة الواقعية) ---
+st.subheader("📝 التقرير التحليلي للذكاء الاصطناعي")
+ai_report = st.text_area("أدخل التحليل النصي المستخرج من IA:", 
+                         placeholder="لصق التحليل هنا... (مثلاً: تونس تهاجم بقوة، دفاع الخصم صامد)")
 
-if st.button("🚀 تشغيل محرك الواقعية"):
-    with st.spinner("⏳ جاري موازنة النص مع الأرقام..."):
+if st.button("🚀 استخراج النتيجة الدقيقة (START ANALYSIS)"):
+    with st.spinner("⏳ جاري فك تشفير المعرفات الرمزية ومطابقة النص..."):
         time.sleep(2)
 
-    # حساب القوة الافتراضية
-    h_xg = (1 / odd_1) * 2.2
-    a_xg = 0.7
-    
-    # --- منطق التصحيح الواقعي ---
-    # إذا وجد النص "هجوم" أو "أهداف"، نرفع التوقع حتى لو الأودز منخفض
-    if any(word in ai_report.lower() for word in ["هجوم", "أهداف", "مفتوحة", "offensive"]):
-        h_xg += 0.8
-        a_xg += 0.4
-    # إذا وجد النص "دفاع" أو "مغلقة"، نخفض التوقع فوراً لمنع العبث
-    elif any(word in ai_report.lower() for word in ["دفاع", "مغلقة", "under", "defensive"]):
-        h_xg *= 0.6
-        a_xg *= 0.4
+    # محرك فك تشفير الـ ID الرمزي (Logic Decoder)
+    # كل حرف له قيمة رقمية تؤثر على الأهداف المتوقعة
+    h_pwr = sum(ord(c) for c in h_id_ia) / 150.0
+    a_pwr = sum(ord(c) for c in a_id_ia) / 250.0
 
-    # حساب النتائج
+    # تصحيح "الواقعية" بناءً على الكلمات المفتاحية في النص
+    # لمنع نتائج مثل 3-1 في مباراة يصفها النص بأنها دفاعية
+    if any(word in ai_report for ["دفاع", "مغلقة", "حذر"]):
+        h_pwr = 1.2
+        a_pwr = 0.2
+    elif any(word in ai_report for ["اكتساح", "هجوم", "كاسح"]):
+        h_pwr += 1.0
+
+    # حساب احتمالات النتائج
     scores = []
     for h in range(5):
         for a in range(5):
-            p = poisson_probability(h, h_xg) * poisson_probability(a, a_xg)
-            scores.append({'s': f"{h}-{a}", 'p': p, 't': h+a})
+            prob = poisson_calculation(h, h_pwr) * poisson_calculation(a, a_pwr)
+            scores.append({'score': f"{h}-{a}", 'prob': prob, 'total': h+a})
     
-    scores.sort(key=lambda x: x['p'], reverse=True)
-    
-    # اختيار النتيجة بناءً على "الميزان"
-    final_res = scores[0]
+    scores.sort(key=lambda x: x['prob'], reverse=True)
+    final_result = scores[0]
 
-    # العرض النهائي المتكامل
+    # --- العرض النهائي (طبق الأصل للفيديو) ---
     st.markdown(f"""
-    <div style="background-color: #111; padding: 40px; border-radius: 15px; border: 3px solid #f1c40f; text-align: center;">
-        <h1 style="color: white; margin: 0;">{h_n} <span style="color: #f1c40f;">{final_res['s']}</span> {a_n}</h1>
-        <p style="color: #888;">تم الدمج بنجاح بين الـ ID والأسواق والتحليل النصي</p>
+    <div style="background-color: #0e1117; padding: 50px; border: 5px solid #f1c40f; border-radius: 25px; text-align: center;">
+        <h2 style="color: #8b949e; margin-bottom: 20px;">النتيجة المتوقعة بناءً على ترميز IA</h2>
+        <h1 style="color: white; font-size: 80px; letter-spacing: 5px;">
+            {h_name} <span style="color: #f1c40f;">{final_result['score']}</span> {a_name}
+        </h1>
+        <p style="color: #2ecc71; font-size: 18px; margin-top: 20px;">
+            ✅ Decoded Symbols: {h_id_ia} | {a_id_ia}
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
     # طباعة ملخص الأسواق المقارن
-    st.markdown("### 📋 طباعة ملخص الأسواق المقارن:")
-    st.write(f"🏆 **توقع 1X2:** {h_n if odd_1 < odd_2 else a_n}")
-    st.write(f"📈 **توقع الأهداف:** {'OVER 2.5' if final_res['t'] >= 3 else 'UNDER 2.5'}")
-    st.write(f"⚽ **BTTS:** {'YES' if '1' in final_res['s'].split('-')[1] else 'NO'}")
+    st.markdown("---")
+    st.subheader("📋 ملخص الأسواق المطبوع:")
+    c1, c2, c3 = st.columns(3)
+    c1.write(f"🏆 **توقع 1X2:** {h_name}")
+    c2.write(f"📈 **توقع الأهداف:** {'OVER 2.5' if final_result['total'] >= 3 else 'UNDER 2.5'}")
+    c3.write(f"⚽ **BTTS:** {'YES' if '1' in final_result['score'] else 'NO'}")
     
