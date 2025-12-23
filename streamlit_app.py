@@ -1,121 +1,133 @@
 import streamlit as st
 import math
 import time
-import random
 
-# إعدادات الواجهة الاحترافية الشاملة
-st.set_page_config(page_title="SNIPER V70.0 FINAL", page_icon="🎯", layout="wide")
+# --- إعدادات الواجهة ---
+st.set_page_config(page_title="SNIPER V72.0 DOMINANCE", page_icon="🚜", layout="wide")
 
-st.markdown("""
-    <style>
-    .stApp { background-color: #0b0e14; color: #e0e0e0; }
-    .result-box { background-color: #161b22; padding: 20px; border-radius: 15px; border: 2px solid #30363d; text-align: center; }
-    h1, h2 { color: #f1c40f !important; }
-    .metric-card { background: #21262d; padding: 15px; border-radius: 10px; border-left: 5px solid #f1c40f; }
-    </style>
-    """, unsafe_allow_html=True)
+# --- منطق سكريبت V37.0 الأصلي (الخاص بك) ---
+def poisson_probability(k, lmbda):
+    return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-# دالة تحويل الاحتمال إلى Odds دقيق
-def to_odd(p):
-    return round(1/p, 2) if p > 0.02 else 50.0
+def calculate_overall_rating(xg, xga, ppg):
+    return (xg * 30) - (xga * 15) + (ppg * 20)
 
-# محرك الحسابات المطور مع معامل المعايرة (Calibration)
-def calculate_calibrated_logic(h_xg, a_xg, style_h, style_a, importance):
-    # موازنة الـ xG بناءً على أهمية المباراة ونمط اللعب
-    if importance == "مباراة حاسمة (دفاعية)":
-        h_xg *= 0.8; a_xg *= 0.7
-    elif importance == "مباراة مفتوحة (هجومية)":
-        h_xg *= 1.2; a_xg *= 1.1
-    
-    if style_h == "اكتساح": h_xg += 0.5
-    if style_a == "استماتة": h_xg -= 0.2; a_xg -= 0.3
+def calculate_total_form_factor(ppg, form_string):
+    form_factor = 1.0
+    try:
+        w, d, l = map(int, form_string.split('-'))
+        form_factor += (w * 0.02) - (l * 0.02)
+    except: pass
+    combined_factor = (form_factor * (ppg / 1.5))
+    return max(0.85, min(1.15, combined_factor))
 
-    win_h, draw, win_a, btts, o25, u25 = 0, 0, 0, 0, 0, 0
-    scores = []
-    
-    for h in range(7):
-        for a in range(7):
-            p = (math.exp(-h_xg)*h_xg**h/math.factorial(h)) * (math.exp(-a_xg)*a_xg**a/math.factorial(a))
-            if h > a: win_h += p
-            elif a > h: win_a += p
-            else: draw += p
-            if h > 0 and a > 0: btts += p
-            if h + a > 2.5: o25 += p
-            else: u25 += p
-            scores.append({'s': f"{h}-{a}", 'p': p, 'h_g': h, 'a_g': a})
+def apply_dominance_logic(home_xg, away_xg, home_rating, away_rating):
+    diff = home_rating - away_rating
+    if diff > 30.0: return home_xg, away_xg * 0.60, f"🚜 هيمنة {home_rating:.1f}"
+    elif diff < -30.0: return home_xg * 0.60, away_xg, f"🚜 هيمنة {away_rating:.1f}"
+    return home_xg, away_xg, "⚖️ مباراة متكافئة"
 
-    # ترتيب النتائج واختيار الأكثر واقعية
-    scores.sort(key=lambda x: x['p'], reverse=True)
-    
-    # تصحيح النتيجة لتفادي خطأ الـ 1-0 و 3-1
-    top_score = scores[0]
-    if o25 > 0.60 and (top_score['h_g'] + top_score['a_g']) < 2:
-        top_score = [s for s in scores if (s['h_g'] + s['a_g']) >= 2][0]
-        
-    return {
-        'H': win_h, 'D': draw, 'A': win_a, 'BTTS': btts, 'O25': o25, 'U25': u25, 'score': top_score
-    }
+# --- واجهة المستخدم (الـ 4 خانات + المدخلات اليدوية) ---
+st.title("🚜 SNIPER V72.0 - نظام الهيمنة المطور")
 
-st.title("🎯 SNIPER V70.0 - محرك المعايرة النهائية")
+# القسم الأول: البيانات الأساسية والـ IDs
+col_names, col_ids = st.columns(2)
+with col_names:
+    h_team = st.text_input("🏠 الفريق المضيف:", "Tunisie")
+    a_team = st.text_input("✈️ الفريق الضيف:", "Ouganda")
+with col_ids:
+    h_id = st.text_input("🆔 ID المضيف:", "101")
+    a_id = st.text_input("🆔 ID الضيف:", "102")
 
-# المدخلات الستة للسيطرة الكاملة
-col1, col2 = st.columns(2)
-with col1:
-    h_n = st.text_input("🏠 الفريق المضيف:", "Tunisie")
-    h_id = st.text_input("🆔 ID المضيف:", "123")
-    h_s = st.selectbox("🎭 نمط المضيف:", ["متوازن", "اكتساح", "استحواذ"])
-with col2:
-    a_n = st.text_input("✈️ الفريق الضيف:", "Ouganda")
-    a_id = st.text_input("🆔 ID الضيف:", "456")
-    a_s = st.selectbox("🛡️ نمط الضيف:", ["متوازن", "استماتة", "مرتدات"])
+st.markdown("---")
 
-importance = st.select_slider("🏟️ طبيعة المباراة:", options=["مباراة حاسمة (دفاعية)", "متوازنة", "مباراة مفتوحة (هجومية)"])
+# القسم الثاني: إحصائيات سكريبت V37.0
+st.subheader("📊 بيانات القوة (V37.0 Stats)")
+c1, c2 = st.columns(2)
+with c1:
+    st.markdown(f"**إحصائيات {h_team}**")
+    h_xg = st.number_input("xG (Home):", value=1.8)
+    h_xga = st.number_input("xGA (Home):", value=1.1)
+    h_ppg = st.number_input("PPG (Home):", value=2.1)
+    h_form = st.text_input("Form (W-D-L) M:", "4-1-0")
 
-if st.button("🚀 بدء التحليل المتقدم (30 ثانية)"):
-    progress = st.progress(0)
+with c2:
+    st.markdown(f"**إحصائيات {a_team}**")
+    a_xg = st.number_input("xG (Away):", value=0.9)
+    a_xga = st.number_input("xGA (Away):", value=1.7)
+    a_ppg = st.number_input("PPG (Away):", value=0.8)
+    a_form = st.text_input("Form (W-D-L) A:", "1-1-3")
+
+st.markdown("---")
+
+# القسم الثالث: الأودز اليدوية لجميع الأسواق
+st.subheader("💰 أودز الأسواق (Manual Odds)")
+o1, o2, o3 = st.columns(3)
+with o1:
+    odd_h = st.number_input(f"Odd Win {h_team}:", value=1.45)
+    odd_d = st.number_input("Odd Draw:", value=4.20)
+    odd_a = st.number_input(f"Odd Win {a_team}:", value=7.80)
+with o2:
+    odd_o25 = st.number_input("Odd Over 2.5:", value=1.85)
+    odd_u25 = st.number_input("Odd Under 2.5:", value=1.95)
+with o3:
+    odd_by = st.number_input("Odd BTTS Yes:", value=2.10)
+    odd_bn = st.number_input("Odd BTTS No:", value=1.75)
+
+if st.button("🚀 تشغيل محرك الهيمنة (30 ثانية)"):
     status = st.empty()
+    bar = st.progress(0)
     
-    for i in range(1, 11):
-        status.info(f"⏳ جاري معايرة البيانات لمباراة {h_n} ضد {a_n}... {i*10}%")
-        time.sleep(3) # المجموع 30 ثانية لهيبة البرنامج
-        progress.progress(i * 10)
+    # محاكاة تحليل السكريبت
+    for i in range(1, 101):
+        status.info(f"🚜 جاري معالجة منطق الهيمنة... {i}%")
+        time.sleep(0.3)
+        bar.progress(i)
 
-    random.seed(h_id + a_id)
-    h_base = random.uniform(1.1, 2.5)
-    a_base = random.uniform(0.4, 1.3)
+    # 1. حساب التصنيفات
+    h_rate = calculate_overall_rating(h_xg, h_xga, h_ppg)
+    a_rate = calculate_overall_rating(a_xg, a_xga, a_ppg)
     
-    data = calculate_calibrated_logic(h_base, a_base, h_s, a_s, importance)
+    # 2. تعديل xG المبدئي (من سكريبتك)
+    final_h = h_xg * (a_xga / 1.3) * calculate_total_form_factor(h_ppg, h_form)
+    final_a = a_xg * (h_xga / 1.3) * calculate_total_form_factor(a_ppg, a_form)
+    
+    # 3. 🔥 تطبيق منطق الهيمنة V37.0 🔥
+    final_h, final_a, dom_msg = apply_dominance_logic(final_h, final_a, h_rate, a_rate)
 
-    st.success("✅ تم الانتهاء من المعايرة وتوليد النتائج")
+    # 4. حساب الاحتمالات (Poisson)
+    wh, dr, wa, o25, bt = 0, 0, 0, 0, 0
+    scores = []
+    for h in range(6):
+        for a in range(6):
+            p = poisson_probability(h, final_h) * poisson_probability(a, final_a)
+            if h > a: wh += p
+            elif a > h: wa += p
+            else: dr += p
+            if h+a >= 3: o25 += p
+            if h>=1 and a>=1: bt += p
+            scores.append({'s': f"{h}-{a}", 'p': p})
+    
+    scores.sort(key=lambda x: x['p'], reverse=True)
+    top = scores[0]
 
-    # النتيجة الدقيقة الكبيرة بأسماء الفرق
-    st.markdown(f"""
-    <div class="result-box">
-        <h1 style='font-size: 60px;'>{h_n} {data['score']['s']} {a_n}</h1>
-        <p>التوقع بناءً على المعايرة اللحظية</p>
-    </div>
-    """, unsafe_allow_html=True)
-
+    # --- عرض النتائج النهائية ---
+    st.success(f"✅ تم التحليل: {dom_msg}")
+    
+    # النتيجة الكبيرة
+    st.markdown(f"<h1 style='text-align: center; font-size: 60px; color: #f1c40f;'>{h_team} {top['s']} {a_team}</h1>", unsafe_allow_html=True)
+    
     st.markdown("---")
-    # عرض الـ Odds الكاملة
-    st.subheader("📊 أودز الأسواق (Market Odds):")
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.write("**🏆 النتيجة (1X2)**")
-        st.metric(f"فوز {h_n}", to_odd(data['H']))
-        st.metric("تعادل", to_odd(data['D']))
-    with m2:
-        st.write("**⚽ كلاهما يسجل**")
-        st.metric("نعم (Yes)", to_odd(data['BTTS']))
-        st.metric("لا (No)", to_odd(1 - data['BTTS']))
-    with m3:
-        st.write("**📈 إجمالي الأهداف**")
-        st.metric("Over 2.5", to_odd(data['O25']))
-        st.metric("Under 2.5", to_odd(data['U25']))
-
-    st.markdown("---")
-    # نصيحة القيمة النهائية
-    stars = "⭐⭐⭐⭐⭐" if data['score']['p'] > 0.18 else "⭐⭐⭐⭐"
-    st.warning(f"💡 نصيحة الخوارزمية: التوجه نحو {'Over 2.5' if data['O25'] > 0.55 else 'الفوز المباشر'} هو الخيار الأكثر أماناً.")
-    st.markdown(f"<h3 style='text-align: center;'>مستوى الضمان: {stars}</h3>", unsafe_allow_html=True)
-            
+    # جدول القيم (Value) بناءً على أودزك اليدوية
+    st.subheader("💎 تحليل القيمة (Value Analysis)")
+    v1, v2, v3 = st.columns(3)
+    with v1:
+        st.metric(f"قيمة فوز {h_team}", round(wh * odd_h, 2))
+        st.metric("قيمة التعادل", round(dr * odd_d, 2))
+    with v2:
+        st.metric("قيمة Over 2.5", round(o25 * odd_o25, 2))
+        st.metric("قيمة BTTS Yes", round(bt * odd_by, 2))
+    with v3:
+        st.metric("تقييم القوة", f"{h_rate:.1f} vs {a_rate:.1f}")
+        st.write("⭐⭐⭐⭐" if wh > 0.6 else "⭐⭐⭐")
+        
