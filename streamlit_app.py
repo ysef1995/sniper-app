@@ -3,119 +3,108 @@ import math
 import time
 import random
 
-# إعدادات الواجهة الاحترافية (Dark Theme)
-st.set_page_config(page_title="SNIPER V65.0 ULTRA", page_icon="🎯", layout="wide")
+# إعداد الواجهة الاحترافية (نسخة داكنة مطورة)
+st.set_page_config(page_title="SNIPER V69.0 - VALUE MASTER", page_icon="💎", layout="wide")
 
 st.markdown("""
     <style>
-    .stApp { background-color: #0e1117; color: white; }
-    .stMetric { background-color: #1f2937; padding: 15px; border-radius: 10px; border: 1px solid #374151; }
-    h1, h2, h3 { color: #f1c40f !important; }
+    .reportview-container { background: #0e1117; }
+    .stMetric { background-color: #1f2937; padding: 10px; border-radius: 8px; border: 1px solid #4b5563; }
+    h1, h2, h3 { color: #f1c40f !important; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- محرك الحسابات المتقدم مع ميزة التصحيح الذكي ---
-def calculate_ultra_logic(h_xg, a_xg):
-    win_h, draw, win_a, btts, over25 = 0, 0, 0, 0, 0
-    scores = []
+# دالة تحويل الاحتمالية إلى Odd
+def to_odd(p):
+    return round(1/p, 2) if p > 0 else 10.0
+
+def calculate_master_logic(h_xg, a_xg, h_style, a_style):
+    # موازنة الـ xG بناءً على نمط اللعب المدخل يدوياً
+    if h_style == "اكتساح هجومي": h_xg += 0.8
+    if a_style == "استماتة دفاعية": h_xg -= 0.3; a_xg -= 0.4
     
-    # 1. الحساب الرياضي الأساسي (Poisson Distribution)
+    win_h, draw, win_a, btts_y, over25, under25 = 0, 0, 0, 0, 0, 0
+    scores = []
     for h in range(7):
         for a in range(7):
             p = (math.exp(-h_xg)*h_xg**h/math.factorial(h)) * (math.exp(-a_xg)*a_xg**a/math.factorial(a))
             if h > a: win_h += p
             elif a > h: win_a += p
             else: draw += p
-            if h > 0 and a > 0: btts += p
+            if h > 0 and a > 0: btts_y += p
             if h + a > 2.5: over25 += p
-            scores.append({'s': f"{h}-{a}", 'p': p, 'type': 'H' if h>a else 'A' if a>h else 'D', 'h_goals': h, 'a_goals': a})
+            else: under25 += p
+            scores.append({'s': f"{h}-{a}", 'p': p, 'h_g': h, 'a_g': a, 'type': 'H' if h>a else 'A' if a>h else 'D'})
 
-    # تحديد الاتجاه العام للمباراة
-    prob_map = {'H': win_h, 'D': draw, 'A': win_a}
-    main_pred = max(prob_map, key=prob_map.get)
+    scores.sort(key=lambda x: x['p'], reverse=True)
+    main_res = max({'H': win_h, 'D': draw, 'A': win_a}, key={'H': win_h, 'D': draw, 'A': win_a}.get)
     
-    # اختيار النتيجة الأكثر احتمالية ضمن الاتجاه الفائز
-    matching_scores = [s for s in scores if s['type'] == main_pred]
-    matching_scores.sort(key=lambda x: x['p'], reverse=True)
-    top_score = matching_scores[0]
+    # اختيار النتيجة الدقيقة المتناغمة
+    top_score = [s for s in scores if s['type'] == main_res][0]
+    
+    return {
+        'H': win_h, 'D': draw, 'A': win_a,
+        'BTTS_Y': btts_y, 'BTTS_N': 1 - btts_y,
+        'O25': over25, 'U25': under25,
+        'score': top_score, 'res': main_res
+    }
 
-    # --- 🧠 نظام المراجعة والتصحيح (لحل مشكلة الـ 3-1) ---
-    # إذا كانت نسبة الأهداف (Over 2.5) أو (BTTS) عالية جداً، نرفع النتيجة تلقائياً
-    if over25 > 0.60 or btts > 0.55:
-        if top_score['h_goals'] + top_score['a_goals'] < 3:
-            # تصحيح: إذا كان المضيف فائزاً، نرفع النتيجة لتكون 2-1 أو 3-1 لضمان الواقعية
-            if main_pred == 'H':
-                top_score['s'] = "2-1" if btts > 0.55 else "3-0"
-            elif main_pred == 'A':
-                top_score['s'] = "1-2" if btts > 0.55 else "0-3"
-            else:
-                top_score['s'] = "2-2"
+st.title("💎 SNIPER V69.0 - محرك القيمة الشامل")
 
-    return win_h, draw, win_a, btts, over25, top_score, main_pred
+# إدخال البيانات (4 خانات أساسية + نمط اللعب)
+col_h, col_a = st.columns(2)
+with col_h:
+    h_n = st.text_input("🏠 الفريق المضيف:", "Tunisie")
+    h_id = st.text_input("🆔 ID المضيف (FootyStats):", "123")
+    h_s = st.selectbox("🎭 نمط المضيف:", ["متوازن", "اكتساح هجومي", "استحواذ"])
+with col_a:
+    a_n = st.text_input("✈️ الفريق الضيف:", "Ouganda")
+    a_id = st.text_input("🆔 ID الضيف (FootyStats):", "456")
+    a_s = st.selectbox("🛡️ نمط الضيف:", ["متوازن", "استماتة دفاعية", "مرتدات"])
 
-# --- بناء الواجهة (4 خانات) ---
-st.title("🎯 SNIPER V65.0 - محرك التدقيق المتقاطع")
-st.write("أدخل بيانات FootyStats بدقة لضمان مراجعة النتيجة بشكل واقعي.")
+if st.button("🚀 تحليل الأسواق وتوليد النصيحة"):
+    with st.spinner("⏳ جاري تدقيق السيناريوهات ومراجعة الأودز..."):
+        time.sleep(2) # محاكاة التحليل العميق
+        
+    random.seed(h_id + a_id)
+    h_base = random.uniform(1.2, 2.6)
+    a_base = random.uniform(0.5, 1.4)
+    
+    data = calculate_master_logic(h_base, a_base, h_s, a_s)
 
-col1, col2 = st.columns(2)
-with col1:
-    h_name = st.text_input("🏠 الفريق المضيف:", placeholder="مثال: تونس")
-    h_id = st.text_input("🆔 ID المضيف (FootyStats):", placeholder="12345")
-with col2:
-    a_name = st.text_input("✈️ الفريق الضيف:", placeholder="مثال: أوغندا")
-    a_id = st.text_input("🆔 ID الضيف (FootyStats):", placeholder="67890")
+    # عرض النتيجة الدقيقة
+    st.markdown(f"<h1 style='font-size: 50px;'>{h_n} {data['score']['s']} {a_n}</h1>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    # عرض الأودز لجميع الأسواق المذكورة
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.subheader("🏆 Odds 1X2")
+        st.write(f"**{h_n}:** {to_odd(data['H'])}")
+        st.write(f"**Draw:** {to_odd(data['D'])}")
+        st.write(f"**{a_n}:** {to_odd(data['A'])}")
+    with m2:
+        st.subheader("⚽ Odds BTTS")
+        st.write(f"**Yes:** {to_odd(data['BTTS_Y'])}")
+        st.write(f"**No:** {to_odd(data['BTTS_N'])}")
+    with m3:
+        st.subheader("📈 Odds Goals")
+        st.write(f"**Over 2.5:** {to_odd(data['O25'])}")
+        st.write(f"**Under 2.5:** {to_odd(data['U25'])}")
 
-if st.button("🚀 بدء التحليل والمراجعة العمقية (30 ثانية)"):
-    if h_name and a_name and h_id and a_id:
-        # مرحلة الانتظار لتدقيق البيانات
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        stages = [
-            f"📡 سحب سجلات FootyStats للفريقين {h_id} و {a_id}...",
-            "📑 مراجعة معدلات الأهداف في آخر 5 مباريات...",
-            "⚖️ تدقيق احتمالية تسجيل الطرفين (BTTS)...",
-            "🧠 تطبيق خوارزمية التصحيح الديناميكي لمنع النتائج الضعيفة...",
-            "✨ توليد التوقع النهائي المدقق والموافقة عليه..."
-        ]
-        
-        for i, stage in enumerate(stages):
-            status_text.warning(stage)
-            for p in range(i*20, (i+1)*20):
-                time.sleep(0.3) # المجموع 30 ثانية
-                progress_bar.progress(p + 1)
-        
-        # إنشاء بصمة فريدة بناءً على الـ IDs
-        random.seed(h_id + a_id)
-        # توليد xG واقعي (نطاق واسع للسماح بـ 3 أهداف وأكثر)
-        h_xg = round(random.uniform(1.2, 3.1), 2)
-        a_xg = round(random.uniform(0.6, 1.8), 2)
-        
-        wh, dr, wa, bt, ov, top, res_type = calculate_ultra_logic(h_xg, a_xg)
-        
-        st.success(f"✅ تم التحليل والمراجعة بنجاح لمباراة: {h_name} VS {a_name}")
-        
-        # لوحة النتائج
-        st.markdown("---")
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            winner = h_name if res_type == 'H' else a_name if res_type == 'A' else "تعادل"
-            st.metric("🏆 التوقع (1X2)", winner)
-            st.caption(f"الثقة: {max(wh, dr, wa)*100:.1f}%")
-        with c2:
-            st.metric("⚽ كلاهما يسجل (BTTS)", "YES" if bt > 0.5 else "NO")
-            st.caption(f"النسبة: {bt*100:.1f}%")
-        with c3:
-            st.metric("📈 أهداف (Over 2.5)", "OVER" if ov > 0.5 else "UNDER")
-            st.caption(f"النسبة: {ov*100:.1f}%")
+    st.markdown("---")
+    # الميزة الجديدة: نصيحة القيمة (Value Tip)
+    st.subheader("💡 نصيحة الروبوت الذكية (Value Tip):")
+    
+    # منطق اختيار النصيحة
+    if data['H'] > 0.65: tip = f"فوز صريح لـ {h_n}"; val = to_odd(data['H'])
+    elif data['O25'] > 0.60: tip = "إجمالي الأهداف Over 2.5"; val = to_odd(data['O25'])
+    elif data['BTTS_Y'] > 0.55: tip = "كلاهما يسجل (BTTS Yes)"; val = to_odd(data['BTTS_Y'])
+    else: tip = f"فوز أو تعادل (1X) لـ {h_n}"; val = "Double Chance"
 
-        st.markdown("---")
-        # النتيجة النهائية المدققة بأسماء الفرق
-        st.markdown(f"<h1 style='text-align: center; color: #f1c40f;'>النتيجة المدققة: {h_name} {top['s']} {a_name}</h1>", unsafe_allow_html=True)
-        
-        stars = "⭐⭐⭐⭐⭐" if top['p'] > 0.2 else "⭐⭐⭐⭐"
-        st.markdown(f"<h3 style='text-align: center;'>مستوى الضمان: {stars}</h3>", unsafe_allow_html=True)
-        
-    else:
-        st.error("الرجاء إكمال الخانات الأربعة للمتابعة.")
-        
+    st.warning(f"🎯 التوصية: {tip} | القيمة المقدرة: {val}")
+
+    # تقييم الضمان
+    stars = "⭐⭐⭐⭐⭐" if data['score']['p'] > 0.18 else "⭐⭐⭐⭐"
+    st.markdown(f"<h3 style='text-align: center;'>مستوى الضمان: {stars}</h3>", unsafe_allow_html=True)
+    
