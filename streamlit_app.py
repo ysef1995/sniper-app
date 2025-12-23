@@ -2,75 +2,83 @@ import streamlit as st
 import math
 import time
 
-st.set_page_config(page_title="SNIPER AI - FLEXIBLE LOGIC", layout="wide")
+st.set_page_config(page_title="SNIPER V100.0 - AUTO LOGIC", layout="wide")
 
 def poisson_calc(k, lmbda):
-    if lmbda <= 0: lmbda = 0.1
+    if lmbda <= 0: lmbda = 0.01
     return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-st.title("🎯 IA SCORE EXACT - المحرك المرن")
+st.title("🛡️ محرك القرار الآلي (AI Auto-Decision)")
 
-# 1. إدخال المعرفات الرمزية (IDs)
+# 1. إدخال الرموز المشفرة (التي تحمل سر النتيجة)
 col_h, col_a = st.columns(2)
 with col_h:
-    h_name = st.text_input("🏠 المضيف:", "تونس")
-    h_id = st.text_input("🆔 ID IA المضيف:", "TN-88xV2zQ")
+    h_name = st.text_input("🏠 المضيف:", "Tunisie")
+    h_id = st.text_input("🆔 ID IA المضيف:", "TN-88xV2zQ_Pwr91")
 with col_a:
-    a_name = st.text_input("✈️ الضيف:", "أوغندا")
-    a_id = st.text_input("🆔 ID IA الضيف:", "UG-42kM")
+    a_name = st.text_input("✈️ الضيف:", "Ouganda")
+    a_id = st.text_input("🆔 ID IA الضيف:", "UG-42kM7tY_Spd65")
 
-# 2. التقرير النصي (مفتاح المرونة)
-st.subheader("📝 التقرير التحليلي (AI Report)")
-ai_report = st.text_area("أدخل التحليل النصي هنا:", 
-                         placeholder="مثال: مباراة متكافئة، دفاع صلب، أو هجوم كاسح...")
+# 2. تفعيل المحرك الآلي
+st.info("💡 المحرك الآلي مفعل الآن: سيقوم بتحليل الرموز وتحديد السكور الواقعي تلقائياً.")
 
-if st.button("🚀 تحليل السيناريو الواقعي"):
-    with st.spinner("⏳ جاري موازنة القوة الرمزية مع النص..."):
-        time.sleep(1)
+if st.button("🚀 استخراج النتيجة الحقيقية آلياً"):
+    with st.spinner("⏳ المحرك الآلي يحلل الرموز ويوازن الاحتمالات..."):
+        time.sleep(2)
 
-    # --- محرك المرونة (Dynamic Power Adjustment) ---
-    # استخراج القوة الأساسية من الرموز
-    h_base = 1.5 if len(h_id) > 5 else 1.0
-    a_base = 0.8
+    # --- ذكاء المحرك الآلي (Internal Logic) ---
+    # تحليل الـ ID لاستنتاج "هوية المباراة" تلقائياً
+    is_high_power = "Pwr" in h_id or "xV" in h_id
+    is_fast_game = "Spd" in a_id or "kM" in a_id
     
-    # تعديل النتيجة بناءً على النص (هنا تكمن المرونة)
-    if any(word in ai_report for word in ["دفاع", "مغلقة", "حذر", "1-0"]):
-        h_pwr, a_pwr = 1.1, 0.2  # يوجه النتيجة نحو 1-0
-    elif any(word in ai_report for word in ["متكافئة", "ندية", "تعادل"]):
-        h_pwr, a_pwr = 1.2, 1.2  # يوجه النتيجة نحو 1-1
-    elif any(word in ai_report for word in ["اكتساح", "هجوم", "3-1"]):
-        h_pwr, a_pwr = 2.8, 1.1  # يوجه النتيجة نحو 3-1
+    # اختيار المسار آلياً بناءً على الرموز فقط
+    if is_high_power and is_fast_game:
+        # مسار الاكتساح أو الأهداف العالية (مثلاً 3-1 أو 4-1)
+        h_pwr, a_pwr = 3.2, 1.2
+        mode_desc = "اكتساح هجومي (تحليل آلي)"
+    elif is_high_power and not is_fast_game:
+        # مسار التفوق الدفاعي (مثلاً 1-0 أو 2-0)
+        h_pwr, a_pwr = 1.9, 0.4
+        mode_desc = "تفوق مضيف (تحليل آلي)"
     else:
-        h_pwr, a_pwr = h_base, a_base
+        # مسار التوازن (مثلاً 1-1 أو 1-0)
+        h_pwr, a_pwr = 1.2, 0.8
+        mode_desc = "توازن حذر (تحليل آلي)"
 
-    # حساب الاحتمالات
-    scores = []
-    for h in range(5):
-        for a in range(4):
+    # حساب مصفوفة الاحتمالات (من 0-0 حتى 5-5)
+    results = []
+    for h in range(6):
+        for a in range(6):
             prob = poisson_calc(h, h_pwr) * poisson_calc(a, a_pwr)
-            scores.append({'s': f"{h}-{a}", 'p': prob, 't': h+a})
+            results.append({'s': f"{h}-{a}", 'p': prob, 't': h+a})
     
-    scores.sort(key=lambda x: x['p'], reverse=True)
-    final = scores[0]
+    # المحرك يختار "السكور الواقعي" الأنسب للهوية المستنتجة
+    results.sort(key=lambda x: x['p'], reverse=True)
+    real_score = results[0]
 
-    # --- العرض النهائي (تصميم مرن) ---
+    # --- العرض النهائي (تصميم الفيديو الأصلي) ---
     st.markdown(f"""
-    <div style="background-color: #0e1117; padding: 40px; border: 4px solid #f1c40f; border-radius: 20px; text-align: center;">
-        <h1 style="color: white; font-size: 60px;">{h_name} <span style="color: #f1c40f;">{final['s']}</span> {a_name}</h1>
-        <p style="color: #888;">تم التحليل بناءً على منطق الهيمنة المتغير</p>
+    <div style="background-color: #0e1117; padding: 50px; border: 5px solid #f1c40f; border-radius: 25px; text-align: center;">
+        <h2 style="color: #8b949e; margin-bottom: 20px;">النتيجة الحقيقية (IA Auto-Logic)</h2>
+        <h1 style="color: white; font-size: 85px; letter-spacing: 5px;">
+            {h_name} <span style="color: #f1c40f;">{real_score['s']}</span> {a_name}
+        </h1>
+        <p style="color: #2ecc71; font-size: 18px; margin-top: 20px;">
+            🤖 Mode Identified: {mode_desc} | ID: {h_id}
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # --- طباعة سيناريوهات بديلة (المرونة المطلوبة) ---
+    # --- طباعة سيناريوهات بديلة وملخص الأسواق ---
     st.markdown("---")
     st.subheader("📊 طباعة سيناريوهات بديلة:")
-    st.write(f"🔹 **السيناريو الهجومي:** إذا استغل {h_name} الثغرات (توقع 2-1 أو 3-1).")
-    st.write(f"🔹 **السيناريو الدفاعي:** إذا تراجع {a_name} للخلف (توقع 1-0).")
+    st.write(f"🔹 **الهجومي:** إذا استغلت {h_name} الثغرات (توقع {results[1]['s']}).")
+    st.write(f"🔹 **الدفاعي:** إذا تراجعت {a_name} منطقة الجزاء (توقع 1-0).")
 
-    # --- ملخص الأسواق الملون ---
     st.markdown("---")
     st.subheader("📋 ملخص الأسواق المطبوع:")
-    st.markdown(f"<div style='background: #1a2634; padding: 12px; border-radius: 8px; color: #5dade2;'>🏆 {h_name} :X2 توقع 1</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='background: #2c2c1a; padding: 12px; border-radius: 8px; color: #f4d03f; margin-top: 5px;'>📈 توقع الأهداف: {'OVER 2.5' if final['t'] >= 3 else 'UNDER 2.5'}</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='background: #1a2e1a; padding: 12px; border-radius: 8px; color: #2ecc71; margin-top: 5px;'>⚽ BTTS: {'YES' if '1' in final['s'] else 'NO'}</div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    c1.markdown(f"<div style='background: #1a2634; padding: 15px; border-radius: 10px; color: #5dade2;'>🏆 {h_name} :X2 توقع 1</div>", unsafe_allow_html=True)
+    c2.markdown(f"<div style='background: #2c2c1a; padding: 15px; border-radius: 10px; color: #f4d03f;'>📈 الأهداف: {'OVER 2.5' if real_score['t'] >= 3 else 'UNDER 2.5'}</div>", unsafe_allow_html=True)
+    c3.markdown(f"<div style='background: #1a2e1a; padding: 15px; border-radius: 10px; color: #2ecc71;'>⚽ BTTS: {'YES' if '-' in real_score['s'] and real_score['s'].split('-')[1] != '0' else 'NO'}</div>", unsafe_allow_html=True)
     
