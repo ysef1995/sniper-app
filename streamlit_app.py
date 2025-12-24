@@ -2,94 +2,77 @@ import streamlit as st
 import math
 import time
 
-st.set_page_config(page_title="SNIPER V125.0 - DYNAMIC GAP", layout="wide")
+st.set_page_config(page_title="SNIPER V126.0 - MASTER", layout="wide")
 
 def poisson_calc(k, lmbda):
     if lmbda <= 0: lmbda = 0.01
     return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-st.title("⚖️ محلل الفجوة الرقمية (Dynamic Delta Logic)")
+st.title("🏆 المحلل الشامل (The Master Logic)")
 
-# --- 1. إدخال البيانات ---
 col_h, col_a = st.columns(2)
 with col_h:
-    h_name = st.text_input("🏠 الفريق المضيف:", "Tunisia")
-    h_id = st.text_input("🆔 بصمة المضيف:", "TUN-94xV_Dom95") # مثال لقوة كاسحة
+    h_name = st.text_input("🏠 صاحب الأرض:", "Nigeria")
+    h_id = st.text_input("🆔 ID المضيف:", "NGA-82yV_Str91")
 with col_a:
-    a_name = st.text_input("✈️ الفريق الضيف:", "Opponent")
-    a_id = st.text_input("🆔 بصمة الضيف:", "OPP-45kM_Low55") # دفاع ضعيف
+    a_name = st.text_input("✈️ الضيف:", "Tanzania")
+    a_id = st.text_input("🆔 ID الضيف:", "TAN-44kM_Res78")
 
-if st.button("🚀 تحليل الفجوة واستخراج السكور"):
-    with st.spinner('⏳ جاري قياس "مسافة" التفوق بين الفريقين...'):
+if st.button("🚀 تحليل المواجهة بالمنطق المطور"):
+    with st.spinner('⏳ جاري موازنة القوى ومنع أخطاء الـ Clean Sheet...'):
         time.sleep(1)
 
-    # دالة استخراج الأرقام والرموز
-    def parse_id(id_text, pos):
+    # تفكيك الأرقام والرموز
+    def parse_final(id_text, pos):
         nums = [int(s) for s in "".join((c if c.isdigit() else " ") for c in id_text).split()]
-        val_atk = nums[-1] if pos == "h" else nums[0]
-        val_def = nums[0] if pos == "h" else nums[-1]
-        has_break = any(k in id_text for k in ["kM", "Spd", "Str"])
-        return val_atk, val_def, has_break
+        v_atk = nums[-1] if pos == "h" else nums[0]
+        v_def = nums[0] if pos == "h" else nums[-1]
+        # رموز الاختراق (تحويل 3-0 إلى 3-1)
+        has_penetration = any(k in id_text for k in ["kM", "Spd", "Str", "Res"])
+        return v_atk, v_def, has_penetration
 
-    h_atk, h_def, h_has_break = parse_id(h_id, "h")
-    a_atk, a_def, a_has_break = parse_id(a_id, "a")
+    h_atk, h_def, h_pen = parse_final(h_id, "h")
+    a_atk, a_def, a_pen = parse_final(a_id, "a")
 
-    # --- منطق الفجوة الديناميكي (The Delta Logic) ---
-    
-    # 1. حساب أهداف المضيف بناءً على "حجم الفارق"
-    delta_h = h_atk - a_def # الفارق بين هجوم المضيف ودفاع الضيف
-    
-    if delta_h >= 35:     # فارق ضخم (اكتساح مثل تونس)
-        h_lambda = 3.1    # يوجه لـ 3 أهداف
-    elif delta_h >= 20:   # فارق متوسط (مثل نيجيريا)
-        h_lambda = 2.1    # يوجه لـ 2 أهداف
-    elif delta_h >= 5:    # مباراة متكافئة
-        h_lambda = 1.2    # يوجه لـ 1 هدف
-    else:                 # المضيف أضعف
-        h_lambda = 0.8
+    # --- ميزان القوى الماستر ---
+    # 1. أهداف المضيف (حساب الفجوة)
+    gap_h = h_atk - a_def
+    if gap_h >= 30: h_mu = 3.2    # فارق ضخم -> 3 أهداف
+    elif gap_h >= 12: h_mu = 2.2  # فارق متوسط -> 2 أهداف
+    else: h_mu = 1.2             # مباراة مغلقة -> 1 هدف
 
-    # 2. حساب أهداف الضيف (منطق الاختراق)
-    delta_a = a_atk - h_def
+    # 2. أهداف الضيف (منطق الهدف المباغت)
+    # الخلل السابق كان هنا؛ قمنا الآن بزيادة فرصة الهدف إذا وجد رمز kM
+    gap_a = a_atk - h_def
+    a_mu = (a_atk / h_def) * 1.2
     
-    # إذا كان هناك رمز اختراق (kM) والفارق ليس كارثياً
-    if a_has_break and delta_a > -50: 
-        a_lambda = 0.95 # يضمن هدفاً واحداً (الـ 2-1 أو 3-1)
+    if a_pen and gap_a > -55: 
+        a_mu = max(a_mu, 0.95) # إجبار المحرك على توقع هدف للضيف (3-1/2-1)
     else:
-        a_lambda = 0.2  # يضمن شباك نظيفة (3-0 أو 2-0)
+        a_mu = 0.15 # إبقاء الشباك نظيفة (3-0/1-0)
 
-    # حساب الاحتمالات
+    # حساب مصفوفة الاحتمالات
     results = []
     for h in range(6):
         for a in range(6):
-            p = poisson_calc(h, h_lambda) * poisson_calc(a, a_lambda)
+            p = poisson_calc(h, h_mu) * poisson_calc(a, a_mu)
             results.append({'s': f"{h}-{a}", 'p': p, 'h': h, 'a': a})
     
     results.sort(key=lambda x: x['p'], reverse=True)
     final = results[0]
 
-    # --- تصميم الطباعة ---
+    # عرض النتيجة بأسلوبك المعتاد
     st.markdown(f"""
-    <div style="background-color: #ffffff; padding: 45px; border: 12px solid #1e1e1e; border-radius: 20px; text-align: center; color: #1e1e1e;">
-        <h2 style="color: #666; font-weight: bold;">التحليل الديناميكي للمباراة</h2>
+    <div style="background-color: #ffffff; padding: 40px; border: 10px solid #1e1e1e; border-radius: 20px; text-align: center; color: #1e1e1e;">
+        <h2 style="color: #666; font-weight: bold;">التحليل الرمزي للمواجهة</h2>
         <div style="display: flex; justify-content: space-around; align-items: center; margin: 30px 0;">
-            <h1 style="font-size: 50px;">{h_name}</h1>
-            <div style="background: #1e1e1e; color: #f1c40f; padding: 20px 50px; border-radius: 15px; font-size: 85px; font-weight: bold;">
+            <h1 style="font-size: 55px;">{h_name}</h1>
+            <div style="background: #1e1e1e; color: #f1c40f; padding: 20px 45px; border-radius: 12px; font-size: 80px; font-weight: bold;">
                 {final['s']}
             </div>
-            <h1 style="font-size: 50px;">{a_name}</h1>
+            <h1 style="font-size: 55px;">{a_name}</h1>
         </div>
-        <div style="text-align: left; background: #f0f0f0; padding: 15px; border-radius: 10px;">
-            <p style="margin: 5px;">📏 <b>فارق القوة للمضيف:</b> {delta_h} نقطة (يستوجب {int(h_lambda)} أهداف)</p>
-            <p style="margin: 5px;">⚔️ <b>حالة الضيف:</b> {'اختراق ناجح' if final['a']>0 else 'دفاع محكم'}</p>
-        </div>
+        <p style="color: #2ecc71; font-weight: bold;">✅ تم التحليل بناءً على فجوة تهديفية {gap_h} نقطة ومعامل اختراق مفعل</p>
     </div>
     """, unsafe_allow_html=True)
-
-    # الأسواق
-    st.markdown("---")
-    st.subheader("📋 ملخص الأسواق:")
-    c1, c2, c3 = st.columns(3)
-    c1.info(f"🏆 الفوز: {'1' if final['h'] > final['a'] else 'X2'}")
-    c2.warning(f"📈 الأهداف: {'OVER 2.5' if (final['h']+final['a']) >= 2.5 else 'UNDER 2.5'}")
-    c3.success(f"⚽ BTTS: {'YES' if final['a'] > 0 else 'NO'}")
     
