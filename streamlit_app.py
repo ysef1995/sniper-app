@@ -2,87 +2,82 @@ import streamlit as st
 import math
 import time
 
-st.set_page_config(page_title="SNIPER V110.0 - DECODER", layout="wide")
+st.set_page_config(page_title="SNIPER V111.0 - FULL SYSTEM", layout="wide")
 
 def poisson_calc(k, lmbda):
     if lmbda <= 0: lmbda = 0.01
     return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-st.title("🔬 محلل الرموز التفكيكي (Granular Symbol Analyzer)")
+st.title("🔬 المحلل التفكيكي المتكامل (Names & Symbols Analyzer)")
 
-# 1. إدخال البصمات الرقمية
+# --- 1. إعادة خانات الأسماء والبصمات (IDs) ---
 col_h, col_a = st.columns(2)
 with col_h:
-    h_id = st.text_input("🆔 بصمة المضيف الفردية (مثلاً TN-88xV2zQ_Pwr91):", "NG-95xV_Dom88_Pwr91")
+    h_name = st.text_input("🏠 اسم الفريق المضيف:", "Nigeria")
+    h_id = st.text_input("🆔 بصمة المضيف (مثل NG-Dom88):", "NG-95xV_Dom88_Pwr91")
 with col_a:
-    a_id = st.text_input("🆔 بصمة الضيف الفردية (مثلاً UG-42kM7tY_Spd65):", "OP-70kM_Spd65_Res40")
+    a_name = st.text_input("✈️ اسم الفريق الضيف:", "Opponent")
+    a_id = st.text_input("🆔 بصمة الضيف (مثل OP-Spd70):", "OP-70kM_Spd65_Res40")
 
-# 2. محرك التفكيك والمقارنة
-if st.button("🚀 تفكيك الرموز وتحليل المواجهة"):
-    with st.spinner("⏳ جاري تحليل كل رمز على حدة..."):
+# --- 2. محرك التفكيك والمقارنة الذكي ---
+if st.button("🚀 تحليل المواجهة بالكامل"):
+    with st.spinner("⏳ جاري تفكيك الرموز ومقارنة نقاط القوة والضعف..."):
         time.sleep(1.5)
 
-    # --- مصفوفة الأوزان الرمزية (The Logic Matrix) ---
+    # مصفوفة الأوزان الرمزية الدقيقة
     weights = {
-        "Dom": 2.5,  # هيمنة كاملة (تضمن أهداف)
-        "Pwr": 1.5,  # قوة هجومية (ترفع السكور)
-        "xV": 0.8,   # فاعلية أمام المرمى
-        "Spd": 1.2,  # سرعة (مفتاح الـ BTTS والهدف المباغت)
-        "Res": -1.0, # مقاومة دفاعية (تقلص أهداف الخصم)
-        "Def": -1.5  # دفاع صلب (يمنع الأهداف)
+        "Dom": 2.5,  # رمز الهيمنة القصوى
+        "Pwr": 1.5,  # قوة التهديف
+        "xV": 0.8,   # فاعلية الهجمات
+        "Spd": 1.2,  # سرعة المرتدات (مفتاح الـ BTTS)
+        "Res": -1.1, # قوة المقاومة (تخصم من أهداف الخصم)
+        "Def": -1.6  # الدفاع الصارم
     }
 
-    # تحليل رموز المضيف
-    h_score_potential = 0.5
-    for key, val in weights.items():
-        if key in h_id: h_score_potential += val
+    # تحليل المضيف (المقارنة التفاعلية)
+    h_pwr = 0.8
+    for k, v in weights.items():
+        if k in h_id: h_pwr += v
     
-    # تحليل رموز الضيف (المقارنة)
-    a_score_potential = 0.3
-    for key, val in weights.items():
-        if key in a_id:
-            # إذا كان الرمز هجومي للضيف (مثل Spd) يزيد أهدافه
-            if val > 0: a_score_potential += val
-            # إذا كان الرمز دفاعي للضيف (مثل Res) يقلل أهداف المضيف
-            else: h_score_potential += val 
+    # تحليل الضيف (المقارنة التفاعلية)
+    a_pwr = 0.4
+    for k, v in weights.items():
+        if k in a_id:
+            if v > 0: a_pwr += v # رموز هجومية للضيف ترفع أهدافه
+            else: h_pwr += v # رموز دفاعية للضيف تخفض أهداف المضيف
 
-    # ضبط الحدود الدنيا (منع النتائج السالبة)
-    h_lmbda = max(h_score_potential, 0.1)
-    a_lmbda = max(a_score_potential, 0.1)
-
-    # حساب الاحتمالات
+    # حساب الاحتمالات (Poisson Distribution)
     results = []
     for h in range(6):
         for a in range(6):
-            p = poisson_calc(h, h_lmbda) * poisson_calc(a, a_lmbda)
+            p = poisson_calc(h, h_pwr) * poisson_calc(a, a_pwr)
             results.append({'s': f"{h}-{a}", 'p': p, 'h': h, 'a': a})
     
     results.sort(key=lambda x: x['p'], reverse=True)
     final = results[0]
 
-    # --- العرض الاحترافي (تنسيق الصور الخاصة بك) ---
+    # --- 3. العرض الاحترافي (تنسيق الهوية البصرية لصورك) ---
     st.markdown(f"""
     <div style="background-color: #0e1117; padding: 45px; border: 5px solid #f1c40f; border-radius: 25px; text-align: center;">
-        <h2 style="color: #8b949e; margin-bottom: 20px;">النتيجة الحقيقية بعد مقارنة الرموز</h2>
-        <h1 style="color: white; font-size: 85px; letter-spacing: 5px;">
-             <span style="color: #f1c40f;">{final['s']}</span>
+        <h1 style="color: white; font-size: 70px;">
+            {h_name} <span style="color: #f1c40f;">{final['s']}</span> {a_name}
         </h1>
-        <p style="color: #2ecc71; font-size: 18px; margin-top: 20px;">
-            🤖 تم التحليل بناءً على فك تشفير {len(h_id.split('_')) + len(a_id.split('_'))} رمزاً فريداً
+        <p style="color: #8b949e; font-size: 18px; margin-top: 10px;">
+            تم التحليل بناءً على منطق الهيمنة المتغير وفك تشفير الرموز الفردية
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # --- ملخص الأسواق المعتمد على المقارنة ---
+    # --- 4. السيناريوهات البديلة والأسواق ---
     st.markdown("---")
-    st.subheader("📊 طباعة سيناريوهات بديلة (بناءً على الرموز):")
-    st.write(f"🔹 **الهجومي:** ({final['h']+1}-{final['a']}) إذا تغلب رمز الـ Pwr على الـ Res.")
-    st.write(f"🔹 **الدفاعي:** ({final['h']}-{final['a']-1 if final['a']>0 else 0}) إذا تراجع الخصم دفاعياً.")
+    st.subheader("📊 طباعة سيناريوهات بديلة:")
+    st.write(f"🔹 **الهجومي:** ({final['h']+1}-{final['a']}) إذا استغلت البصمة الرمز الهجومي {h_id.split('_')[-1]}.")
+    st.write(f"🔹 **الدفاعي:** ({final['h']}-{final['a']-1 if final['a']>0 else 0}) إذا تراجع {a_name} لمنطقة الجزاء.")
 
     st.markdown("---")
     st.subheader("📋 ملخص الأسواق المطبوع:")
     c1, c2, c3 = st.columns(3)
-    c1.markdown(f"<div style='background: #1a2634; padding: 15px; border-radius: 10px; color: #5dade2;'>🏆 توقع: {'1' if final['h']>final['a'] else 'X2'}</div>", unsafe_allow_html=True)
+    c1.markdown(f"<div style='background: #1a2634; padding: 15px; border-radius: 10px; color: #5dade2;'>🏆 التوقع: {'1' if final['h']>final['a'] else 'X2'} </div>", unsafe_allow_html=True)
     c2.markdown(f"<div style='background: #2c2c1a; padding: 15px; border-radius: 10px; color: #f4d03f;'>📈 الأهداف: {'OVER 2.5' if (final['h']+final['a']) >= 2.5 else 'UNDER 2.5'}</div>", unsafe_allow_html=True)
     c3.markdown(f"<div style='background: #1a2e1a; padding: 15px; border-radius: 10px; color: #2ecc71;'>⚽ BTTS: {'YES' if final['a'] > 0 else 'NO'}</div>", unsafe_allow_html=True)
     
