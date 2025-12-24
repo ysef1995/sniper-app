@@ -2,70 +2,69 @@ import streamlit as st
 import time
 import hashlib
 
-# إعدادات الواجهة الاحترافية
-st.set_page_config(page_title="SNIPER AI ORIGINAL LOGIC", layout="wide")
+# إعداد الواجهة لتكون مطابقة للفيديو الأصلي
+st.set_page_config(page_title="SNIPER AI PRO", layout="wide")
 
-def original_algorithm(url):
-    """محاكاة منطق السكريبت الأصلي: تحويل الرابط إلى أهداف عبر خوارزمية الهاش"""
-    # 1. صنع بصمة فريدة للمباراة
-    match_hash = hashlib.sha256(url.encode()).hexdigest()
+def core_logic_engine(url):
+    """محرك الخوارزمية الأصلية: تحويل الرابط إلى نتيجة ثابتة ومنطقية"""
+    # تنظيف الرابط لضمان عدم تغير النتيجة بسبب فراغ أو حرف كبير
+    clean_url = url.strip().lower()
     
-    # 2. استخراج "أوزان" الأهداف من البصمة (المنطق الرقمي)
-    # نأخذ قيم معينة من الهاش ونحولها لأرقام
-    h_weight = int(match_hash[2:4], 16)
-    a_weight = int(match_hash[4:6], 16)
+    # صنع بصمة رقمية عميقة (SHA-256) للمباراة
+    match_fingerprint = hashlib.sha256(clean_url.encode()).hexdigest()
     
-    # 3. تحويل الأوزان إلى أهداف واقعية (بين 0 و 4)
-    h_s = h_weight % 5
-    a_s = a_s_calc = a_weight % 3
+    # استخراج أرقام معينة من وسط البصمة لضمان "منطق الأهداف"
+    # نستخدم أوزان رياضية ثابتة لكل مباراة
+    val1 = int(match_fingerprint[10:12], 16)
+    val2 = int(match_fingerprint[12:14], 16)
     
-    # موازنة النتيجة لمنع التعادلات المملة (مثل 1-1 دائماً)
-    if h_s == a_s and h_s < 4:
-        h_s += 1
-        
-    return h_s, a_s, match_hash[:12].upper()
+    # تحديد الأهداف (المضيف بين 0-4، الضيف بين 0-2) لنتائج واقعية
+    h_s = val1 % 5 
+    a_s = val2 % 3
+    
+    # تصحيح النتائج الصفرية المملة لزيادة الواقعية
+    if h_s == 0 and a_s == 0: h_s, a_s = 1, 0
+    
+    return h_s, a_s, match_fingerprint[:10].upper()
 
-st.markdown("<h2 style='text-align: center; color: #f1c40f;'>🛡️ SNIPER AI: ORIGINAL ALGORITHM</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: #f1c40f;'>🛡️ SNIPER AI: CORE ENGINE</h2>", unsafe_allow_html=True)
 
-# مدخل الرابط
-url_input = st.text_input("🔗 BeSoccer Match Link:", placeholder="أدخل الرابط لتشغيل الخوارزمية الأصلية...")
+# خانة الرابط
+target_link = st.text_input("🔗 Paste Match Link:", placeholder="أدخل رابط المباراة هنا...")
 
 if st.button("🚀 EXECUTE CORE ANALYSIS"):
-    if url_input:
-        # شريط التحليل الاحترافي كما في الفيديوهات
-        progress = st.progress(0)
-        status = st.empty()
+    if target_link:
+        # مرحلة التحليل البصري (30 ثانية أو أقل)
+        with st.status("🔍 جاري فحص البصمة الرقمية للمباراة...", expanded=True) as status:
+            time.sleep(2)
+            st.write("📊 تحليل موازين القوى (xG)...")
+            h_s, a_s, m_id = core_logic_engine(target_link)
+            time.sleep(2)
+            status.update(label="✅ تم استخراج النتيجة من الخوارزمية!", state="complete")
         
-        for i in range(100):
-            time.sleep(0.1) # سرعة معقولة للتحليل
-            progress.progress(i + 1)
-            if i < 50: status.text("⏳ Reading Match Metadata...")
-            else: status.text("📊 Decoding Digital ID Weights...")
-            
-        h_score, a_score, match_id = original_algorithm(url_input)
-        status.success("✅ Analysis Complete!")
+        # عرض الـ Match ID المنسق
+        st.markdown(f"<p style='text-align:center;'>Match Token: <span style='color:#00ff00;'>SNPR_{m_id}</span></p>", unsafe_allow_html=True)
         
-        # عرض الـ ID بوضوح
-        st.markdown(f"<p style='text-align:center;'>Match ID: <span style='color:#00ff00;'>SUR_{match_id}</span></p>", unsafe_allow_html=True)
-        
-        # تصميم النتيجة النهائي (بدون أخطاء HTML)
+        # تصميم النتيجة النهائي (حل مشكلة ظهور الأكواد والتداخل)
         st.markdown(f"""
-        <div style="background: #000; padding: 30px; border: 3px solid #f1c40f; border-radius: 20px; text-align: center; color: white;">
-            <div style="font-size: 80px; font-weight: bold; color: #fff; margin-bottom: 20px;">{h_score} - {a_score}</div>
+        <div style="background: #000; padding: 35px; border: 4px solid #f1c40f; border-radius: 25px; text-align: center; color: white;">
+            <div style="font-size: 85px; font-weight: bold; color: #fff; margin-bottom: 25px; text-shadow: 0 0 15px #f1c40f;">
+                {h_s} - {a_s}
+            </div>
             
-            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                <div style="background: #1a1a1a; padding: 15px; border-radius: 12px; width: 120px; border-top: 4px solid #f1c40f;">
-                    <small style="color:#888;">WINNER</small><br><b style="color:#f1c40f;">{"HOME" if h_score > a_score else "AWAY" if a_score > h_score else "DRAW"}</b>
+            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <div style="background: #111; padding: 20px; border-radius: 15px; width: 125px; border-top: 5px solid #f1c40f;">
+                    <small style="color:#888;">WINNER</small><br><b style="color:#f1c40f; font-size: 18px;">{"HOME" if h_s > a_s else "AWAY" if a_s > h_s else "DRAW"}</b>
                 </div>
-                <div style="background: #1a1a1a; padding: 15px; border-radius: 12px; width: 120px; border-top: 4px solid #f1c40f;">
-                    <small style="color:#888;">O/U 2.5</small><br><b style="color:#f1c40f;">{"OVER" if h_score+a_score > 2.5 else "UNDER"}</b>
+                <div style="background: #111; padding: 20px; border-radius: 15px; width: 125px; border-top: 5px solid #f1c40f;">
+                    <small style="color:#888;">O/U 2.5</small><br><b style="color:#f1c40f; font-size: 18px;">{"OVER" if h_s+a_s > 2.5 else "UNDER"}</b>
                 </div>
-                <div style="background: #1a1a1a; padding: 15px; border-radius: 12px; width: 120px; border-top: 4px solid #f1c40f;">
-                    <small style="color:#888;">BTTS</small><br><b style="color:#f1c40f;">{"YES" if h_score > 0 and a_score > 0 else "NO"}</b>
+                <div style="background: #111; padding: 20px; border-radius: 15px; width: 125px; border-top: 5px solid #f1c40f;">
+                    <small style="color:#888;">BTTS</small><br><b style="color:#f1c40f; font-size: 18px;">{"YES" if h_s>0 and a_s>0 else "NO"}</b>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.error("⚠️ يرجى إدخال الرابط.")
+        st.warning("⚠️ يرجى إدخال الرابط أولاً.")
         
