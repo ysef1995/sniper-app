@@ -1,63 +1,81 @@
+import math
 import hashlib
-import time
+import os
 
-def generate_id(team_data):
-    # دمج البيانات لإنشاء بصمة فريدة (PPG, xG, Form)
-    raw_str = f"{team_data['name']}{team_data['ppg']}{team_data['xg']}{team_data['form']}"
-    return hashlib.md5(raw_str.encode()).hexdigest()[:12].upper()
+# --- وظائف التشفير الخاصة بالستريم ---
+def generate_match_id(team_name, xg, ppg, rating):
+    # إنشاء بصمة فريدة بناءً على قوة الفريق لتبدو احترافية
+    raw_data = f"{team_name}{xg}{ppg}{rating}"
+    return hashlib.md5(raw_data.encode()).hexdigest()[:12].upper()
 
-def generate_odds_id(odds_data):
-    # تشفير شامل لأسواق 1X2, O/U 2.5, BTTS
-    raw_odds = f"{odds_data['1x2']}{odds_data['ou25']}{odds_data['btts']}"
-    return "ODDS-" + hashlib.sha1(raw_odds.encode()).hexdigest()[:10].upper()
+def generate_market_id(win1, over, btts):
+    # تشفير الأسواق الرئيسية الثلاثة
+    raw_market = f"{win1}{over}{btts}"
+    return "MARKET-" + hashlib.sha1(raw_market.encode()).hexdigest()[:10].upper()
 
-def display_stream_dashboard(home_team, away_team, odds):
-    # توليد الرموز
-    home_id = generate_id(home_team)
-    away_id = generate_id(away_team)
-    market_id = generate_odds_id(odds)
+# --- منطق الـ Sniper V37 (الذي أرفقته أنت) ---
+def poisson_probability(k, lmbda):
+    return (lmbda**k * math.exp(-lmbda)) / math.factorial(k)
 
-    # التنسيق النهائي الذي سيظهر للمشاهدين (التنسيق الذهبي)
-    print("\n" + " " * 10 + "🚀 SYSTEM MATCH SUR IA ACTIVATED 🚀")
+def calculate_overall_rating(xg, xga, ppg):
+    return (xg * 30) - (xga * 15) + (ppg * 20)
+
+def main():
+    # 1. إدخال البيانات يدوياً
+    print("\n" + "═"*60)
+    print("      🚀 INITIALIZING ID MATCH SUR IA GENERATOR 🚀")
+    print("═"*60)
+    
+    home_name = input("🏠 Home Team Name: ")
+    away_name = input("✈️  Away Team Name: ")
+    
+    print("\n📊 Enter Statistics for " + home_name)
+    h_xg = float(input("   xG: "))
+    h_xga = float(input("   xGA: "))
+    h_ppg = float(input("   PPG: "))
+    
+    print("\n📊 Enter Statistics for " + away_name)
+    a_xg = float(input("   xG: "))
+    a_xga = float(input("   xGA: "))
+    a_ppg = float(input("   PPG: "))
+    
+    print("\n💰 Enter Market Odds:")
+    odd_1 = float(input("   Odd Win 1: "))
+    odd_over = float(input("   Odd Over 2.5: "))
+    odd_btts = float(input("   Odd BTTS Yes: "))
+
+    # 2. المعالجة الحسابية (V37 Logic)
+    h_rating = calculate_overall_rating(h_xg, h_xga, h_ppg)
+    a_rating = calculate_overall_rating(a_xg, a_xga, a_ppg)
+    
+    # 3. توليد الرموز المشفرة للستريم
+    id_home = generate_match_id(home_name, h_xg, h_ppg, h_rating)
+    id_away = generate_match_id(away_name, a_xg, a_ppg, a_rating)
+    id_market = generate_market_id(odd_1, odd_over, odd_btts)
+
+    # 4. طباعة النتيجة النهائية (التنسيق الذهبي للستريم)
+    os.system('cls' if os.name == 'nt' else 'clear') # تنظيف الشاشة لعرض النتيجة فقط
+    print("\n\n")
+    print(" " * 10 + "🛡️  SYSTEM DATA DECODED SUCCESSFULLY  🛡️")
     print("═" * 60)
     
     # عرض الفريق الأول
-    print(f"  [HOME] {home_team['name'].upper()}")
-    print(f"  ID MATCH SUR IA: {home_id}")
+    print(f"  [TEAM A] {home_name.upper()}")
+    print(f"  ID MATCH SUR IA: {id_home}")
     print("─" * 60)
     
     # عرض الفريق الثاني
-    print(f"  [AWAY] {away_team['name'].upper()}")
-    print(f"  ID MATCH SUR IA: {away_id}")
+    print(f"  [TEAM B] {away_name.upper()}")
+    print(f"  ID MATCH SUR IA: {id_away}")
     print("═" * 60)
     
-    # عرض الـ ID الخاص بجميع الأسواق في الأسفل
-    print(f"  📊 GLOBAL MARKET ID (1X2, O/U, BTTS):")
-    print(f"  {market_id}")
+    # عرض ID السوق الشامل
+    print(f"  📊 GLOBAL MARKET MASTER ID:")
+    print(f"  {id_market}")
     print("═" * 60)
-    print(" " * 12 + "READY FOR PREDICTION ANALYSIS")
+    print(" " * 15 + "🛰️  READY FOR BROADCAST")
+    print("\n\n")
 
-# --- إدخال البيانات (مثال لمباراة الجزائر والسودان) ---
-home = {
-    "name": "Algeria",
-    "ppg": 2.45,
-    "xg": 1.88,
-    "form": "WWWDW"
-}
-
-away = {
-    "name": "Sudan",
-    "ppg": 0.92,
-    "xg": 0.74,
-    "form": "LDLLW"
-}
-
-# أسواق 1X2، الأهداف، وتسجيل الطرفين
-current_odds = {
-    "1x2": [1.42, 4.15, 8.20],
-    "ou25": "UNDER",
-    "btts": "NO"
-}
-
-# تشغيل العرض
-display_stream_dashboard(home, away, current_odds)
+if __name__ == "__main__":
+    main()
+    
