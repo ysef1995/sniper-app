@@ -1,70 +1,57 @@
-import streamlit as st
-import time
 import hashlib
+import math
 
-# إعداد الواجهة لتكون مطابقة للفيديو الأصلي
-st.set_page_config(page_title="SNIPER AI PRO", layout="wide")
+def calculate_poisson_probability(lmbda, x):
+    """حساب احتمالية تسجيل عدد معين من الأهداف"""
+    return (exp(-lmbda) * (lmbda**x)) / math.factorial(x)
 
-def core_logic_engine(url):
-    """محرك الخوارزمية الأصلية: تحويل الرابط إلى نتيجة ثابتة ومنطقية"""
-    # تنظيف الرابط لضمان عدم تغير النتيجة بسبب فراغ أو حرف كبير
-    clean_url = url.strip().lower()
+def generate_sur_ia_dashboard(team_h, team_a, xG_h, xG_a, ppg_h, ppg_a, form_h, form_a, odds):
+    # 1. توقع النتيجة الدقيقة (Correct Score) بناءً على الـ xG
+    score_h = round(xG_h)
+    score_a = round(xG_a)
     
-    # صنع بصمة رقمية عميقة (SHA-256) للمباراة
-    match_fingerprint = hashlib.sha256(clean_url.encode()).hexdigest()
+    # 2. تحليل الأسواق (Market Analysis)
+    # سوق 1x2
+    main_market = "1" if xG_h > xG_a + 0.5 else ("2" if xG_a > xG_h + 0.5 else "X")
     
-    # استخراج أرقام معينة من وسط البصمة لضمان "منطق الأهداف"
-    # نستخدم أوزان رياضية ثابتة لكل مباراة
-    val1 = int(match_fingerprint[10:12], 16)
-    val2 = int(match_fingerprint[12:14], 16)
+    # سوق Over/Under 2.5
+    total_expected_goals = xG_h + xG_a
+    ou_25 = "Over 2.5" if total_expected_goals > 2.5 else "Under 2.5"
     
-    # تحديد الأهداف (المضيف بين 0-4، الضيف بين 0-2) لنتائج واقعية
-    h_s = val1 % 5 
-    a_s = val2 % 3
-    
-    # تصحيح النتائج الصفرية المملة لزيادة الواقعية
-    if h_s == 0 and a_s == 0: h_s, a_s = 1, 0
-    
-    return h_s, a_s, match_fingerprint[:10].upper()
+    # سوق BTTS (كلا الفريقين يسجل)
+    btts = "YES" if xG_h > 0.8 and xG_a > 0.8 else "NO"
 
-st.markdown("<h2 style='text-align: center; color: #f1c40f;'>🛡️ SNIPER AI: CORE ENGINE</h2>", unsafe_allow_html=True)
+    # 3. توليد الـ IDs المشفرة (التنسيق الذهبي)
+    def create_id(name, ppg, xg, form):
+        base = f"{name[:2].upper()}-{int(ppg*100)}-{int(xg*100)}-{form[:3].upper()}"
+        return f"{base}-{hashlib.md5(base.encode()).hexdigest()[:4].upper()}"
 
-# خانة الرابط
-target_link = st.text_input("🔗 Paste Match Link:", placeholder="أدخل رابط المباراة هنا...")
+    home_id = create_id(team_h, ppg_h, xG_h, form_h)
+    away_id = create_id(team_a, ppg_a, xG_a, form_a)
 
-if st.button("🚀 EXECUTE CORE ANALYSIS"):
-    if target_link:
-        # مرحلة التحليل البصري (30 ثانية أو أقل)
-        with st.status("🔍 جاري فحص البصمة الرقمية للمباراة...", expanded=True) as status:
-            time.sleep(2)
-            st.write("📊 تحليل موازين القوى (xG)...")
-            h_s, a_s, m_id = core_logic_engine(target_link)
-            time.sleep(2)
-            status.update(label="✅ تم استخراج النتيجة من الخوارزمية!", state="complete")
-        
-        # عرض الـ Match ID المنسق
-        st.markdown(f"<p style='text-align:center;'>Match Token: <span style='color:#00ff00;'>SNPR_{m_id}</span></p>", unsafe_allow_html=True)
-        
-        # تصميم النتيجة النهائي (حل مشكلة ظهور الأكواد والتداخل)
-        st.markdown(f"""
-        <div style="background: #000; padding: 35px; border: 4px solid #f1c40f; border-radius: 25px; text-align: center; color: white;">
-            <div style="font-size: 85px; font-weight: bold; color: #fff; margin-bottom: 25px; text-shadow: 0 0 15px #f1c40f;">
-                {h_s} - {a_s}
-            </div>
-            
-            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                <div style="background: #111; padding: 20px; border-radius: 15px; width: 125px; border-top: 5px solid #f1c40f;">
-                    <small style="color:#888;">WINNER</small><br><b style="color:#f1c40f; font-size: 18px;">{"HOME" if h_s > a_s else "AWAY" if a_s > h_s else "DRAW"}</b>
-                </div>
-                <div style="background: #111; padding: 20px; border-radius: 15px; width: 125px; border-top: 5px solid #f1c40f;">
-                    <small style="color:#888;">O/U 2.5</small><br><b style="color:#f1c40f; font-size: 18px;">{"OVER" if h_s+a_s > 2.5 else "UNDER"}</b>
-                </div>
-                <div style="background: #111; padding: 20px; border-radius: 15px; width: 125px; border-top: 5px solid #f1c40f;">
-                    <small style="color:#888;">BTTS</small><br><b style="color:#f1c40f; font-size: 18px;">{"YES" if h_s>0 and a_s>0 else "NO"}</b>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.warning("⚠️ يرجى إدخال الرابط أولاً.")
-        
+    # طباعة المخرجات الاحترافية
+    print(f"\n{'='*45}")
+    print(f"🏆 MATCH SUR IA - PRO DASHBOARD 🏆")
+    print(f"{'='*45}")
+    print(f"🏟️ MATCH: {team_h} VS {team_a}")
+    print(f"🎯 AI PREDICTED SCORE: {score_h} - {score_a}")
+    print(f"{'-'*45}")
+    print(f"📊 TEAM IDs:")
+    print(f"ID_HOME: {home_id}")
+    print(f"ID_AWAY: {away_id}")
+    print(f"{'-'*45}")
+    print(f"💰 STRATEGY & MARKETS:")
+    print(f"▣ Market 1X2: {main_market}")
+    print(f"▣ Goals O/U: {ou_25} ({total_expected_goals:.2f})")
+    print(f"▣ BTTS:       {btts}")
+    print(f"▣ Market ID:  M-{hashlib.md5(str(odds).encode()).hexdigest()[:6].upper()}")
+    print(f"{'='*45}\n")
+
+# مثال للتشغيل (بيانات مباراة الجزائر والسودان)
+generate_sur_ia_dashboard(
+    "Algeria", "Sudan", 
+    xG_h=2.10, xG_a=0.45, 
+    ppg_h=2.4, ppg_a=0.9, 
+    form_h="WWWDW", form_a="LLDLW",
+    odds=[1.40, 4.50, 8.00]
+)
