@@ -1,61 +1,48 @@
 import streamlit as st
-import random
-import time
 
-st.set_page_config(page_title="SNIPER MASTER V130", layout="wide")
+# إعداد الصفحة لتناسب الهاتف
+st.set_page_config(page_title="SNIPER SMART", layout="centered")
 
-# دالة محاكاة التحليل بناءً على الـ ID المختصر
-def analyze_short_id(h_id, a_id):
-    # تحويل الحروف والأرقام لقيم رقمية افتراضية للعملية الحسابية
-    h_val = sum(ord(c) for c in h_id) % 5
-    a_val = sum(ord(c) for c in a_id) % 3
+# دالة ذكية لتحويل الـ ID لنتائج واقعية (1-0, 2-1, 3-1)
+def calculate_exact_score(h_id, a_id):
+    # حساب قوة وهمية من الرموز لضبط النتيجة
+    h_power = sum(ord(c) for c in h_id) % 10
+    a_power = sum(ord(c) for c in a_id) % 5
     
-    # تحديد سيناريو المباراة (مجرى المباراة)
-    if h_val > a_val + 1:
-        score, flow = f"{h_val}-{a_val}", "سيطرة مطلقة للمضيف مع تراجع دفاعي للخصم."
-    elif h_val == a_val:
-        score, flow = f"{h_val}-{a_val}", "مباراة مغلقة تكتيكياً مع انحصار اللعب في وسط الميدان."
-    else:
-        score, flow = f"{h_val}-{a_val}", "مباراة متكافئة مع هجمات مرتدة خطيرة من الجانبين."
-    return score, flow
+    # منطق النتائج الواقعية (الكونغو 1-0، نيجيريا 2-1)
+    if h_power > 7: h_score, a_score = 3, (1 if a_power > 2 else 0)
+    elif h_power > 4: h_score, a_score = 2, (1 if a_power > 1 else 0)
+    else: h_score, a_score = 1, 0
+    
+    return f"{h_score}-{a_score}"
 
-st.markdown("<h1 style='text-align: center; color: #1e1e1e;'>🎯 PLATFORM SNIPER PRO</h1>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>🎯 SMART ANALYST V131</h2>", unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
-with col1:
-    h_name = st.text_input("🏠 الفريق المضيف:", "Real Oviedo")
-    h_id = st.text_input("🆔 ID المضيف (6 رموز):", "Rt4X2p")
-with col2:
-    a_name = st.text_input("✈️ الفريق الضيف:", "Elche")
-    a_id = st.text_input("🆔 ID الضيف (6 رموز):", "Km9L1s")
+# مدخلات بسيطة ومنظمة
+h_name = st.text_input("🏠 المضيف:", "D.R. Congo")
+h_id = st.text_input("🆔 ID المضيف:", "Rt4X2p")
 
-if st.button("🚀 START ANALYSIS"):
-    with st.spinner('جاري الاتصال بالخادم وتحليل البيانات...'):
-        time.sleep(2)
-        score, flow = analyze_short_id(h_id, a_id)
+a_name = st.text_input("✈️ الضيف:", "Benin")
+a_id = st.text_input("🆔 ID الضيف:", "Km9L1s")
 
-    # --- الطباعة الأنيقة كما في الفيديو [00:04:17] ---
+if st.button("🚀 ANALYZE NOW"):
+    score = calculate_exact_score(h_id, a_id)
+    
+    # --- تصميم أنيق، متناسق ومضغوط للهاتف ---
     st.markdown(f"""
-    <div style="background-color: #ffffff; padding: 40px; border: 15px solid #1e1e1e; border-radius: 25px; text-align: center; color: #1e1e1e; font-family: 'Arial Black', sans-serif;">
-        <h2 style="color: #666; letter-spacing: 2px;">EXACT SCORE RESULT</h2>
-        <div style="display: flex; justify-content: space-around; align-items: center; margin: 40px 0;">
-            <h1 style="font-size: 50px; text-transform: uppercase;">{h_name}</h1>
-            <div style="background: #1e1e1e; color: #f1c40f; padding: 30px 60px; border-radius: 20px; font-size: 100px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+    <div style="background: #1e1e1e; color: white; padding: 20px; border-radius: 20px; text-align: center; margin-top: 20px;">
+        <p style="color: #f1c40f; margin-bottom: 5px; font-weight: bold;">EXACT SCORE</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px;">
+            <span style="font-size: 18px; flex: 1;">{h_name}</span>
+            <span style="font-size: 45px; font-weight: bold; color: #f1c40f; background: #333; padding: 5px 20px; border-radius: 10px; margin: 0 10px;">
                 {score}
-            </div>
-            <h1 style="font-size: 50px; text-transform: uppercase;">{a_name}</h1>
+            </span>
+            <span style="font-size: 18px; flex: 1;">{a_name}</span>
         </div>
-        <div style="background: #f9f9f9; padding: 20px; border-radius: 15px; border-left: 10px solid #f1c40f; text-align: right;">
-            <h3 style="margin: 0; color: #333;">📝 مجرى المباراة:</h3>
-            <p style="font-size: 20px; color: #555; margin-top: 10px;">{flow}</p>
+        <hr style="border-color: #444;">
+        <div style="text-align: right; font-size: 14px; color: #ccc;">
+            <b>📋 التحليل:</b> مباراة تكتيكية، المضيف يسيطر دفاعياً.
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # الأسواق الإضافية [00:02:07]
-    st.markdown("---")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Winner", h_name if int(score[0]) > int(score[2]) else ("Draw" if score[0]==score[2] else a_name))
-    c2.metric("Under/Over 2.5", "UNDER" if (int(score[0])+int(score[2])) < 2.5 else "OVER")
-    c3.metric("BTTS", "YES" if int(score[2]) > 0 else "NO")
     
