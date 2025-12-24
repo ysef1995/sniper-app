@@ -1,48 +1,61 @@
 import streamlit as st
 import time
 
-st.set_page_config(page_title="SNIPER AI ANALYST", layout="centered")
+st.set_page_config(page_title="SNIPER AI PLATFORM", layout="centered")
 
-def auto_ai_prediction(h_id, a_id):
-    # تحليل "بصمة القوة" (الحروف الكبيرة تزيد الهجوم، الصغيرة تزيد الدفاع)
-    h_atk = sum(2 for c in h_id if c.isupper()) + sum(1 for c in h_id if c.isdigit())
-    a_def = sum(1.5 for c in a_id if c.islower())
+# دالة فك التشفير والتحليل
+def ai_analyze_id(h_id, a_id):
+    # الذكاء الاصطناعي يقرأ القوة من الرموز (الحروف الكبيرة = أهداف)
+    h_s = sum(1 for c in h_id if c.isupper())
+    a_s = sum(1 for c in a_id if c.isupper())
     
-    # حساب الفارق الفني آلياً
-    diff = h_atk - a_def
-    
-    if diff > 8: # حالة اكتساح (3-0 أو 3-1)
-        return (3, 1 if "k" in a_id.lower() else 0)
-    elif diff > 4: # حالة ندية (2-1 أو 2-0)
-        return (2, 1 if "m" in a_id.lower() else 0)
-    else: # حالة مباراة مغلقة (1-0 أو 0-0)
-        return (1 if diff > 0 else 0, 0)
+    # ضمان نتيجة منطقية إذا كانت الرموز صغيرة (1-0)
+    if h_s == 0 and a_s == 0: h_s = 1
+    return h_s, a_s
 
-st.markdown("<h2 style='text-align: center; color: #f1c40f;'>🧠 AI SCORE PREDICTOR</h2>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>🎯 AI SCORE SYSTEM</h1>", unsafe_allow_True=True)
 
-# واجهة المستخدم كما في الفيديو
+# إدخال البيانات كما في الفيديو
 col1, col2 = st.columns(2)
 with col1:
-    h_n = st.text_input("🏠 المضيف:", "Senegal")
-    h_i = st.text_input("🆔 ID المضيف:", "SN82Xp")
+    h_name = st.text_input("🏠 الفريق المضيف:", "Burkina Faso")
+    h_id = st.text_input("🆔 ID المضيف:", placeholder="أدخل الرمز هنا...")
 with col2:
-    a_n = st.text_input("✈️ الضيف:", "Botswana")
-    a_i = st.text_input("🆔 ID الضيف:", "bt45mz")
+    a_name = st.text_input("✈️ الفريق الضيف:", "Equatorial Guinea")
+    a_id = st.text_input("🆔 ID الضيف:", placeholder="أدخل الرمز هنا...")
 
-if st.button("🚀 ANALYZE & PREDICT"):
-    with st.spinner('جاري تحليل موازين القوى...'):
-        time.sleep(2)
-        h_s, a_s = auto_ai_prediction(h_i, a_i)
-    
-    st.markdown(f"""
-    <div style="background: #1e1e1e; color: white; padding: 25px; border-radius: 20px; border: 4px solid #f1c40f; text-align: center;">
-        <div style="display: flex; justify-content: space-around; align-items: center;">
-            <div style="font-size: 20px; font-weight: bold;">{h_n}</div>
-            <div style="background: #333; color: #f1c40f; font-size: 55px; font-weight: bold; padding: 10px 30px; border-radius: 15px;">
-                {h_s}-{a_s}
+if st.button("🚀 START ANALYSIS"):
+    if h_id and a_id:
+        # --- مرحلة العد التنازلي (30 ثانية) كما في الفيديو ---
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        for percent_complete in range(100):
+            time.sleep(0.3)  # لإكمال 30 ثانية تقريباً (0.3 * 100)
+            progress_bar.progress(percent_complete + 1)
+            remaining = 30 - int(percent_complete * 0.3)
+            status_text.text(f"⏳ جاري تحليل موازين القوى... متبقي {remaining} ثانية")
+        
+        status_text.success("✅ اكتمل التحليل!")
+        h_s, a_s = ai_analyze_id(h_id, a_id)
+
+        # --- الطباعة الأنيقة (النتيجة النهائية) ---
+        st.markdown(f"""
+        <div style="background: #1e1e1e; color: white; padding: 30px; border-radius: 20px; border: 5px solid #f1c40f; text-align: center; margin-top: 20px;">
+            <p style="color: #f1c40f; font-weight: bold; font-size: 20px;">FINAL EXACT SCORE</p>
+            <div style="display: flex; justify-content: space-around; align-items: center; margin: 20px 0;">
+                <div style="font-size: 24px; font-weight: bold; flex: 1;">{h_name}</div>
+                <div style="background: #333; color: #f1c40f; font-size: 70px; font-weight: bold; padding: 10px 40px; border-radius: 15px; min-width: 150px; box-shadow: 0 0 20px #f1c40f66;">
+                    {h_s}-{a_s}
+                </div>
+                <div style="font-size: 24px; font-weight: bold; flex: 1;">{a_name}</div>
             </div>
-            <div style="font-size: 20px; font-weight: bold;">{a_n}</div>
+            <div style="background: #282828; padding: 15px; border-radius: 10px; text-align: right; border-right: 5px solid #f1c40f;">
+                <p style="margin: 0; color: #f1c40f;">📋 تقرير المحلل:</p>
+                <p style="margin: 5px 0 0; color: #ccc; font-size: 14px;">بناءً على تشفير الرموز، يتوقع النظام مباراة تنتهي بنتيجة {h_s}-{a_s}.</p>
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
+        """, unsafe_allow_html=True)
+    else:
+        st.error("⚠️ يرجى إدخال الرموز (IDs) أولاً!")
+        
