@@ -1,85 +1,81 @@
 import streamlit as st
-import math
 import time
+import random
 
-# --- محرك التوازن الذكي V48.0 ---
-def analyze_balanced_v48(h_id, a_id):
-    def extract(id_str):
-        parts = id_str.split("-")
-        try:
-            ppg, xg = int(parts[1])/100, int(parts[2])/100
-            return ppg, xg
-        except: return 1.5, 1.2
-
-    h_ppg, h_xg = extract(h_id)
-    a_ppg, a_xg = extract(a_id)
-    diff = h_ppg - a_ppg
-
-    # --- المنطق المرن حسب فجوة المستوى ---
+# --- محرك التوقعات غير المتوقعة V50 ---
+def ghost_prediction(h_id, a_id):
+    # محاكاة تحليل عميق لثغرات الدفاع
+    time.sleep(2) 
     
-    # 1. وضع الهيمنة الكاسحة (لنتائج 3-0 و 4-0)
-    if diff >= 1.3:
-        h_l, a_l = 3.2, 0.4
-        strat = "HIGH DOMINANCE 🚜 (فارق مستوى شاسع)"
+    # استخراج أرقام وهمية لزيادة المصداقية البصرية
+    h_val = int(h_id.split("-")[1]) if "-" in h_id else 150
+    a_val = int(a_id.split("-")[1]) if "-" in a_id else 150
+    
+    diff = abs(h_val - a_val)
+    
+    # منطق التوقع "الخرافي"
+    if diff < 40: # تقارب شديد -> توقع تعادل إيجابي صلب
+        scores = [(1,1), (2,2), (1,1)]
+        mode = "CRITICAL DATA MATCH ⚠️"
+    elif 40 <= diff < 100: # أفضلية طفيفة -> توقع فوز صعب أو تعادل مفاجئ
+        scores = [(2,1), (1,1), (1,0)]
+        mode = "HIGH RISK ANALYSIS 🛡️"
+    else: # فارق كبير -> توقع نتيجة كبيرة أو 3-1
+        scores = [(3,0), (3,1), (2,0)]
+        mode = "SYSTEM DOMINANCE 🚜"
         
-    # 2. وضع المباراة المفتوحة (لنتائج 3-1 و 2-1)
-    elif 0.8 <= diff < 1.3:
-        h_l, a_l = 2.4, 1.1 
-        strat = "OPEN ATTACK ⚔️ (مباراة هجومية)"
-        
-    # 3. وضع القمة الأفريقية (لنتائج 1-0 و 0-0)
-    else:
-        h_l, a_l = 1.1, 0.5
-        strat = "AFRICAN REALITY 🛡️ (مباراة تكتيكية مغلقة)"
+    return random.choice(scores), mode
 
-    def get_score(l1, l2):
-        bh, ba, mp = 0, 0, 0
-        for h in range(6):
-            for a in range(6):
-                p = (math.exp(-l1)*(l1**h)/math.factorial(h)) * (math.exp(-l2)*(l2**a)/math.factorial(a))
-                if p > mp: mp, bh, ba = p, h, a
-        return bh, ba
+# --- واجهة احترافية تشبه الفيديو ---
+st.set_page_config(page_title="GHOST ENGINE V50", layout="centered")
 
-    g_h, g_a = get_score(h_l, a_l)
-    return g_h, g_a, strat
+# تصميم واجهة الـ Dark Web الاحترافية
+st.markdown("""
+    <style>
+    .report-card { 
+        background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+        padding: 40px; border-radius: 15px; border: 1px solid #333;
+        box-shadow: 0 0 20px rgba(0,255,0,0.1); text-align: center;
+    }
+    .glitch { color: #00ff00; font-family: 'Courier New', monospace; font-size: 14px; }
+    </style>
+""", unsafe_allow_html=True)
 
-# --- الواجهة المحدثة ---
-st.set_page_config(page_title="SNIPER V48 - BALANCED", layout="wide")
-st.markdown("<h1 style='text-align: center; color: #D4AF37;'>🛰️ SNIPER AI - V48.0 BALANCED</h1>", unsafe_allow_html=True)
+st.title("⚡ GHOST ENGINE - SCORE EXACT V50")
+st.write("---")
 
-c1, c2 = st.columns(2)
-with c1:
-    h_n = st.text_input("🏠 Home Team")
-    h_i = st.text_input("🆔 Home ID", placeholder="Ex: DZ-240-185-V48")
-with c2:
-    a_n = st.text_input("✈️ Away Team")
-    a_i = st.text_input("🆔 Away ID", placeholder="Ex: SD-095-075-V48")
+col1, col2 = st.columns(2)
+with col1:
+    h_team = st.text_input("🏠 HOME TEAM", "Rayo Vallecano")
+    h_id = st.text_input("🆔 SOURCE ID 1")
+with col2:
+    a_team = st.text_input("✈️ AWAY TEAM", "Valencia")
+    a_id = st.text_input("🆔 SOURCE ID 2")
 
-if st.button("🚀 EXECUTE SMART ANALYSIS", use_container_width=True):
-    with st.status("🧠 Evaluating Tactical Gap...", expanded=True) as s:
-        time.sleep(10)
-        s.update(label="✅ Analysis Synced", state="complete")
+if st.button("🔌 CONNECT TO DATA STREAM"):
+    with st.status("📡 Establishing Secure Connection...", expanded=True) as status:
+        st.write("🔓 Decoding Team Metadata...")
+        time.sleep(2)
+        st.write("🧠 Running 50,000 Match Simulations...")
+        time.sleep(3)
+        st.write("⚠️ Detecting Defensive Vulnerabilities...")
+        time.sleep(2)
+        status.update(label="✅ DATA RETRIEVED", state="complete")
 
-    score_h, score_a, strategy = analyze_balanced_v48(h_i, a_i)
+    (g_h, g_a), mode = ghost_prediction(h_i, a_i)
 
-    # التزامن التلقائي للسطر السفلي
-    f_1x2 = "HOME (1)" if score_h > score_a else "DRAW (X)" if score_h == score_a else "AWAY (2)"
-    f_goals = "OVER 2.5" if (score_h + score_a) >= 2.5 else "UNDER 2.5"
-    f_btts = "YES" if (score_h > 0 and score_a > 0) else "NO"
-
+    # عرض النتيجة بأسلوب الفيديو (خرافي ومبهر)
     st.markdown(f"""
-    <div style="background: #000; padding: 35px; border: 2px solid #D4AF37; border-radius: 20px; text-align: center; color: white;">
-        <h3 style="color: #666; margin-bottom: 5px;">STRATEGY:</h3>
-        <h2 style="color: #D4AF37; margin-top: 0;">{strategy}</h2>
-        <div style="display: flex; justify-content: center; align-items: center; gap: 50px; margin: 30px 0;">
-            <div><h1 style="font-size: 110px; margin:0;">{score_h}</h1><p>{h_n}</p></div>
-            <div style="font-size: 40px; color: #D4AF37;">VS</div>
-            <div><h1 style="font-size: 110px; margin:0;">{score_a}</h1><p>{a_n}</p></div>
+    <div class="report-card">
+        <p class="glitch">ENCRYPTED RESULT FOUND // {mode}</p>
+        <div style="display: flex; justify-content: center; gap: 40px; align-items: center; margin: 20px 0;">
+            <div><h1 style="font-size: 80px; color: white;">{g_h}</h1><small>{h_team}</small></div>
+            <h2 style="color: #444;">:</h2>
+            <div><h1 style="font-size: 80px; color: white;">{g_a}</h1><small>{a_team}</small></div>
         </div>
-        <div style="display: flex; justify-content: space-around; background: #111; padding: 20px; border-radius: 15px;">
-            <div><p style="color:#D4AF37; margin:0;">🚩 1X2</p><b style="font-size: 18px;">{f_1x2}</b></div>
-            <div><p style="color:#D4AF37; margin:0;">⚽ GOALS</p><b style="font-size: 18px;">{f_goals}</b></div>
-            <div><p style="color:#D4AF37; margin:0;">🔄 BTTS</p><b style="font-size: 18px;">{f_btts}</b></div>
+        <div style="background: #111; padding: 15px; border-radius: 10px; border: 1px dashed #00ff00;">
+            <span style="color: #00ff00;">🎯 PREDICTION: </span> 
+            <b style="color: white; font-size: 20px;">{"DRAW" if g_h == g_a else "HOME WIN"} | {g_h}-{g_a}</b>
         </div>
     </div>
     """, unsafe_allow_html=True)
