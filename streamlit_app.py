@@ -1,82 +1,92 @@
 import streamlit as st
+import math
 import time
 import random
 
-# --- محرك التوقعات غير المتوقعة V50 ---
-def ghost_prediction(h_id, a_id):
-    # محاكاة تحليل عميق لثغرات الدفاع
-    time.sleep(2) 
-    
-    # استخراج أرقام وهمية لزيادة المصداقية البصرية
-    h_val = int(h_id.split("-")[1]) if "-" in h_id else 150
-    a_val = int(a_id.split("-")[1]) if "-" in a_id else 150
-    
-    diff = abs(h_val - a_val)
-    
-    # منطق التوقع "الخرافي"
-    if diff < 40: # تقارب شديد -> توقع تعادل إيجابي صلب
-        scores = [(1,1), (2,2), (1,1)]
-        mode = "CRITICAL DATA MATCH ⚠️"
-    elif 40 <= diff < 100: # أفضلية طفيفة -> توقع فوز صعب أو تعادل مفاجئ
-        scores = [(2,1), (1,1), (1,0)]
-        mode = "HIGH RISK ANALYSIS 🛡️"
-    else: # فارق كبير -> توقع نتيجة كبيرة أو 3-1
-        scores = [(3,0), (3,1), (2,0)]
-        mode = "SYSTEM DOMINANCE 🚜"
-        
-    return random.choice(scores), mode
+# --- GHOST ENGINE V50 Logic ---
+def analyze_ghost_logic(h_id, a_id):
+    def extract_metrics(id_str):
+        if "-" not in id_str: return 1.5, 1.0, "D"
+        parts = id_str.split("-")
+        try:
+            ppg = int(parts[1]) / 100
+            xg = int(parts[2]) / 100
+            form = parts[3] if len(parts) > 3 else "D"
+            return ppg, xg, form
+        except: return 1.2, 1.0, "D"
 
-# --- واجهة احترافية تشبه الفيديو ---
-st.set_page_config(page_title="GHOST ENGINE V50", layout="centered")
+    h_ppg, h_xg, h_f = extract_metrics(h_id)
+    a_ppg, a_xg, a_f = extract_metrics(a_id)
+    diff = h_ppg - a_ppg
 
-# تصميم واجهة الـ Dark Web الاحترافية
+    # مصفوفة النتائج "الخرافية" (تحاكي كسر السكريبت للتوقعات)
+    if diff >= 1.3:
+        # وضع الهيمنة (مثل 3-0 أو 3-1)
+        res = random.choice([(3,0), (3,1), (2,0)])
+        strat = "SYSTEM DOMINANCE 🚜"
+    elif 0.4 <= diff < 1.3:
+        # وضع الحسم الصعب (مثل 2-1 أو 1-0)
+        res = random.choice([(2,1), (1,0), (2,1)])
+        strat = "HIGH-RISK PRECISION 🎯"
+    else:
+        # وضع التعادل الخرافي (مثل 1-1 أو 2-2)
+        res = random.choice([(1,1), (0,0), (2,2)])
+        strat = "GHOST NEUTRAL 👻"
+    
+    return res, strat
+
+# --- UI Layout ---
+st.set_page_config(page_title="SNIPER GHOST V50", layout="wide")
+
 st.markdown("""
     <style>
-    .report-card { 
-        background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
-        padding: 40px; border-radius: 15px; border: 1px solid #333;
-        box-shadow: 0 0 20px rgba(0,255,0,0.1); text-align: center;
-    }
-    .glitch { color: #00ff00; font-family: 'Courier New', monospace; font-size: 14px; }
+    .main { background-color: #0e1117; }
+    .stButton>button { width: 100%; border-radius: 10px; background: #D4AF37; color: black; font-weight: bold; height: 3em; }
+    .report-box { background: #000; padding: 40px; border: 2px solid #D4AF37; border-radius: 20px; text-align: center; color: white; box-shadow: 0px 0px 25px rgba(212, 175, 55, 0.2); }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ GHOST ENGINE - SCORE EXACT V50")
-st.write("---")
+st.markdown("<h1 style='text-align: center; color: #D4AF37;'>⚡ SNIPER GHOST ENGINE V50.0</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>DECODING MATCH DATA FROM ENCRYPTED STREAM</p>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 with col1:
-    h_team = st.text_input("🏠 HOME TEAM", "Rayo Vallecano")
-    h_id = st.text_input("🆔 SOURCE ID 1")
+    h_name = st.text_input("🏠 HOME TEAM", "Algérie")
+    h_id = st.text_input("🆔 SOURCE ID [1]")
 with col2:
-    a_team = st.text_input("✈️ AWAY TEAM", "Valencia")
-    a_id = st.text_input("🆔 SOURCE ID 2")
+    a_name = st.text_input("✈️ AWAY TEAM", "Sudan")
+    a_id = st.text_input("🆔 SOURCE ID [2]")
 
-if st.button("🔌 CONNECT TO DATA STREAM"):
-    with st.status("📡 Establishing Secure Connection...", expanded=True) as status:
-        st.write("🔓 Decoding Team Metadata...")
+if st.button("🚀 INITIATE GHOST ANALYSIS"):
+    with st.status("📡 Connecting to Market Servers...", expanded=True) as status:
         time.sleep(2)
-        st.write("🧠 Running 50,000 Match Simulations...")
+        st.write("🔓 Bypassing Firewalls...")
         time.sleep(3)
-        st.write("⚠️ Detecting Defensive Vulnerabilities...")
-        time.sleep(2)
-        status.update(label="✅ DATA RETRIEVED", state="complete")
+        st.write("🧠 Executing Ghost Simulation...")
+        time.sleep(4)
+        status.update(label="✅ DATA DECODED SUCCESSFULLY", state="complete")
 
-    (g_h, g_a), mode = ghost_prediction(h_i, a_i)
+    (g_h, g_a), strategy = analyze_ghost_logic(h_id, a_id)
 
-    # عرض النتيجة بأسلوب الفيديو (خرافي ومبهر)
+    # حساب السطر السفلي المتزامن
+    f_1x2 = "HOME (1)" if g_h > g_a else "DRAW (X)" if g_h == g_a else "AWAY (2)"
+    f_goals = "OVER 2.5" if (g_h + g_a) >= 2.5 else "UNDER 2.5"
+    f_btts = "YES" if (g_h > 0 and g_a > 0) else "NO"
+
     st.markdown(f"""
-    <div class="report-card">
-        <p class="glitch">ENCRYPTED RESULT FOUND // {mode}</p>
-        <div style="display: flex; justify-content: center; gap: 40px; align-items: center; margin: 20px 0;">
-            <div><h1 style="font-size: 80px; color: white;">{g_h}</h1><small>{h_team}</small></div>
-            <h2 style="color: #444;">:</h2>
-            <div><h1 style="font-size: 80px; color: white;">{g_a}</h1><small>{a_team}</small></div>
+    <div class="report-box">
+        <h3 style="color: #D4AF37; font-family: monospace;">MODE: {strategy}</h3>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 60px; margin: 40px 0;">
+            <div><h1 style="font-size: 120px; margin:0;">{g_h}</h1><p style="font-size: 20px;">{h_name}</p></div>
+            <div style="font-size: 50px; color: #D4AF37;">VS</div>
+            <div><h1 style="font-size: 120px; margin:0;">{g_a}</h1><p style="font-size: 20px;">{a_name}</p></div>
         </div>
-        <div style="background: #111; padding: 15px; border-radius: 10px; border: 1px dashed #00ff00;">
-            <span style="color: #00ff00;">🎯 PREDICTION: </span> 
-            <b style="color: white; font-size: 20px;">{"DRAW" if g_h == g_a else "HOME WIN"} | {g_h}-{g_a}</b>
+        <div style="display: flex; justify-content: space-around; background: #111; padding: 25px; border-radius: 15px; border: 1px solid #333;">
+            <div><p style="color:#D4AF37; margin:0;">🚩 1X2</p><b style="font-size: 22px;">{f_1x2}</b></div>
+            <div><p style="color:#D4AF37; margin:0;">⚽ GOALS</p><b style="font-size: 22px;">{f_goals}</b></div>
+            <div><p style="color:#D4AF37; margin:0;">🔄 BTTS</p><b style="font-size: 22px;">{f_btts}</b></div>
         </div>
+        <p style="color: #444; margin-top: 30px; font-family: monospace; letter-spacing: 2px;">ENCRYPTED_DATA_PACKET_V50_SUCCESS</p>
     </div>
     """, unsafe_allow_html=True)
     
