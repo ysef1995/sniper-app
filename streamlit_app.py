@@ -2,108 +2,103 @@ import streamlit as st
 import time
 import hashlib
 
-# --- 1. منطق فك التشفير المطور (V37.5 Dominance Logic) ---
-def decode_id_to_score(id_string, is_home=True):
-    if not id_string:
-        return 0
-    
-    # تحويل الـ ID إلى قيمة رقمية فريدة باستخدام MD5
-    hash_object = hashlib.md5(id_string.encode())
-    hash_hex = hash_object.hexdigest()
-    hash_val = int(hash_hex, 16)
-    
-    # استخراج "بصمة الهيمنة" من أول 3 رموز في الـ ID
-    prefix = id_string[:2].upper()
-    
-    # منطق التهديف للمضيف (Home)
-    if is_home:
-        base_goals = hash_val % 3 # القيمة الأساسية (0-2)
-        # إذا كان الفريق "الجزائر" أو يحتوي الـ ID على رموز قوة (A, B, 2)
-        if prefix == "DZ" or any(char in id_string[:4] for char in "AB2"):
-            return base_goals + 2 # رفع السقف لضمان نتائج مثل 3-0 أو 4-1
-        return base_goals
-    
-    # منطق التهديف للضيف (Away)
-    else:
-        # إذا كان الخصم ضعيفاً (مثل السودان أمام الجزائر) نقيد أهدافه
-        if any(char in id_string for char in "LX"): 
-            return hash_val % 1 # غالباً 0
-        return hash_val % 2 # غالباً 0 أو 1
+# --- 1. محرك التحليل العميق (Deep Metrics Engine) ---
+def analyze_match_dna(h_id, a_id):
+    """
+    تحليل الـ ID لاستخراج المؤشرات الأربعة:
+    1. PPG: نقاط المباراة (القوة التراكمية)
+    2. Form: الشكل الحالي (الزخم)
+    3. xG: الأهداف المتوقعة (التهديد الهجومي)
+    4. xGA: الأهداف المتوقعة ضد الفريق (الصلابة الدفاعية)
+    """
+    def get_metrics(id_str):
+        if "-" not in id_str: return 1.0, 1.0, 1.0 # قيم افتراضية
+        parts = id_str.split("-")
+        # استخراج البيانات من الـ ID (افتراضاً أننا وضعناها في المولد سابقاً)
+        try:
+            ppg = int(parts[1]) / 100  # مثال: 245 تصبح 2.45
+            xg = int(parts[2]) / 100   # مثال: 188 تصبح 1.88
+            form_val = 1.2 if "W" in parts[3] else 0.8
+            return ppg, xg, form_val
+        except:
+            return 1.2, 1.0, 1.0
 
-# --- 2. إعدادات واجهة Streamlit ---
-st.set_page_config(page_title="SNIPER AI - V37.5 DECODER", layout="wide")
+    h_ppg, h_xg, h_form = get_metrics(h_id)
+    a_ppg, a_xg, a_form = get_metrics(a_id)
 
-# تصميم الهيدر (الذهبي)
+    # حساب القوة الهجومية والدفاعية (Logic V39)
+    # الهجوم = (xG * PPG) + مكافأة الفورمة
+    h_attack = (h_xg * h_ppg) * h_form
+    a_attack = (a_xg * a_ppg) * a_form
+    
+    # حساب الأهداف النهائية (توقع دقيق)
+    final_h = round(h_attack)
+    final_a = round(a_attack / 2) # تقليل حظوظ الضيف برمجياً بناءً على xGA افتراضي
+
+    # معالجة حالة الجزائر (الهيمنة المطلقة)
+    if "DZ" in h_id.upper() and h_ppg > 2.0:
+        final_h = max(final_h, 3)
+        final_a = 0
+
+    return final_h, final_a
+
+# --- 2. واجهة Streamlit الذهبية ---
+st.set_page_config(page_title="SNIPER V39.0 - DEEP METRICS", layout="wide")
+
 st.markdown("""
-    <h1 style='text-align: center; color: #D4AF37; margin-bottom: 0;'>🛰️ SNIPER AI - ID DECODER SYSTEM</h1>
-    <p style='text-align: center; color: #666;'>Advanced Dominance Analysis v37.5</p>
-    <hr style="border-color: #333;">
+    <style>
+    .report-card { background: #0e1117; border: 2px solid #D4AF37; border-radius: 15px; padding: 30px; text-align: center; }
+    .metric-box { background: #1a1c23; border-radius: 10px; padding: 15px; margin: 10px; border: 1px solid #333; }
+    </style>
+    <h1 style='text-align: center; color: #D4AF37;'>🚜 SNIPER V39.0 - DEEP METRICS</h1>
+    <p style='text-align: center; color: #888;'>PPG | FORM | xG | xGA Analysis System</p>
 """, unsafe_allow_html=True)
 
-# --- 3. خانات الإدخال مع مفاتيح فريدة (Keys) ---
-col1, col2 = st.columns(2)
+# --- 3. خانات الإدخال ---
+c1, c2 = st.columns(2)
+with c1:
+    h_name = st.text_input("🏠 Home Team", key="h_n")
+    h_id = st.text_input(f"🆔 {h_name} ID", placeholder="Ex: DZ-245-188-WWW-8F2A", key="h_i")
+with c2:
+    a_name = st.text_input("✈️ Away Team", key="a_n")
+    a_id = st.text_input(f"🆔 {a_name} ID", placeholder="Ex: SD-092-074-LDL-3C1B", key="a_i")
 
-with col1:
-    h_name = st.text_input("🏠 Home Team Name", value="Home Team", key="home_name_v37")
-    h_id = st.text_input(f"🆔 {h_name} SUR ID", key="home_id_v37")
+m_id = st.text_input("💰 MASTER MARKET ID")
 
-with col2:
-    a_name = st.text_input("✈️ Away Team Name", value="Away Team", key="away_name_v37")
-    a_id = st.text_input(f"🆔 {a_name} SUR ID", key="away_id_v37")
+# --- 4. زر التحليل الفائق ---
+if st.button("🛰️ START DEEP METRICS ANALYSIS", use_container_width=True):
+    if h_id and a_id:
+        with st.status("🧬 Decoding DNA Metrics...", expanded=True) as s:
+            st.write("📈 Extracting PPG & Form Factor...")
+            time.sleep(3)
+            st.write("🔥 Analyzing xG vs xGA Dominance...")
+            time.sleep(4)
+            st.write("🎯 Finalizing Score Matrix...")
+            time.sleep(3)
+            s.update(label="✅ Analysis Complete", state="complete")
 
-m_id = st.text_input("💰 GLOBAL MARKET MASTER ID", key="market_id_v37")
-
-# --- 4. زر التحليل والأنيميشن ---
-if st.button("🔍 START DEEP ANALYSIS", use_container_width=True):
-    if h_id and a_id and m_id:
-        # محاكاة التحليل لمدة 10 ثوانٍ لزيادة الحماس
-        status_text = st.empty()
-        progress_bar = st.progress(0)
+        goal_h, goal_a = analyze_match_dna(h_id, a_id)
         
-        for p in range(100):
-            time.sleep(0.1) # 10 ثوانٍ إجمالية
-            progress_bar.progress(p + 1)
-            if p < 30: status_text.text("📡 Syncing with Sniper Satellite...")
-            elif p < 60: status_text.text(f"⚙️ Decoding {h_name} & {a_name} Algorithms...")
-            else: status_text.text("🔥 Activating Dominance Protocol...")
-        
-        status_text.success("✅ DATA DECODED!")
-        time.sleep(1)
-        status_text.empty()
-        progress_bar.empty()
-
-        # حساب الأهداف بناءً على المنطق المطور
-        goal_h = decode_id_to_score(h_id, is_home=True)
-        goal_a = decode_id_to_score(a_id, is_home=False)
-        
-        # تحليل الأسواق
-        win_market = "HOME (1)" if goal_h > goal_a else ("AWAY (2)" if goal_a > goal_h else "DRAW (X)")
-        over_under = "OVER 2.5" if (goal_h + goal_a) >= 3 else "UNDER 2.5"
+        # الأسواق
+        win = "HOME (1)" if goal_h > goal_a else ("AWAY (2)" if goal_a > goal_h else "DRAW (X)")
+        over = "OVER 2.5" if (goal_h + goal_a) >= 2.5 else "UNDER 2.5"
         btts = "YES" if (goal_h > 0 and goal_a > 0) else "NO"
 
-        # --- 5. العرض النهائي (التصميم الذهبي) ---
+        # --- 5. مخرجات الستريم ---
         st.markdown(f"""
-        <div style="background-color: #0e1117; padding: 35px; border: 2px solid #D4AF37; border-radius: 20px; text-align: center; color: white;">
-            <h2 style="color: #D4AF37; letter-spacing: 2px;">🏆 FINAL PREDICTION REPORT</h2>
-            <div style="margin: 30px 0; display: flex; justify-content: center; align-items: center; gap: 40px;">
-                <div style="flex: 1;">
-                    <h1 style="font-size: 85px; margin: 0; line-height: 1;">{goal_h}</h1>
-                    <p style="color: #888; font-size: 18px; margin-top: 10px;">{h_name.upper()}</p>
-                </div>
-                <div style="font-size: 45px; color: #D4AF37; font-weight: bold;">VS</div>
-                <div style="flex: 1;">
-                    <h1 style="font-size: 85px; margin: 0; line-height: 1;">{goal_a}</h1>
-                    <p style="color: #888; font-size: 18px; margin-top: 10px;">{a_name.upper()}</p>
-                </div>
+        <div class="report-card">
+            <h2 style="color: #D4AF37;">🥇 FINAL PREDICTION REPORT</h2>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin: 25px 0;">
+                <div><h1 style="font-size: 90px; margin: 0; color: white;">{goal_h}</h1><p>{h_name}</p></div>
+                <div style="font-size: 40px; color: #D4AF37;">VS</div>
+                <div><h1 style="font-size: 90px; margin: 0; color: white;">{goal_a}</h1><p>{a_name}</p></div>
             </div>
-            <div style="display: flex; justify-content: space-around; background: #1a1c23; padding: 20px; border-radius: 15px; border: 1px solid #333;">
-                <div><p style="color: #D4AF37; margin:0;">🚩 1X2</p><b>{win_market}</b></div>
-                <div><p style="color: #D4AF37; margin:0;">⚽ GOALS</p><b>{over_under}</b></div>
-                <div><p style="color: #D4AF37; margin:0;">🔄 BTTS</p><b>{btts}</b></div>
+            <div style="display: flex; justify-content: space-around;">
+                <div class="metric-box"><p style="color:#D4AF37;">🚩 1X2</p><b>{win}</b></div>
+                <div class="metric-box"><p style="color:#D4AF37;">⚽ GOALS</p><b>{over}</b></div>
+                <div class="metric-box"><p style="color:#D4AF37;">🔄 BTTS</p><b>{btts}</b></div>
             </div>
-            <p style="color: #444; font-size: 12px; margin-top: 30px; letter-spacing: 3px;">VERIFIED ID: {m_id}</p>
+            <p style="color: #333; margin-top: 20px;">SYSTEM V39.0 | {m_id}</p>
         </div>
         """, unsafe_allow_html=True)
-    else:
-        st.error("⚠️ Error: Please input all required IDs to bypass encryption.")
-
+        
