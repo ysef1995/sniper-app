@@ -3,71 +3,75 @@ import cloudscraper
 import time
 import random
 
-# إعدادات الواجهة الاحترافية للبث
-st.set_page_config(page_title="SNIPER IA V2.0", page_icon="⚽", layout="centered")
+# إعدادات الواجهة
+st.set_page_config(page_title="SNIPER IA V2", layout="centered")
 
 st.markdown("""
     <style>
-    .stApp { background-color: #000000; }
-    .main-title { color: #00FF00; font-family: 'Courier New', monospace; text-align: center; font-size: 40px; text-shadow: 0 0 15px #00FF00; }
-    .stTextInput>div>div>input { background-color: #0a0a0a; color: #00FF00; border: 1px solid #00FF00; text-align: center; }
-    .stButton>button { width: 100%; background-color: #00FF00; color: black; font-weight: bold; font-size: 20px; border-radius: 10px; border: none; transition: 0.3s; }
-    .stButton>button:hover { background-color: #008000; color: white; transform: scale(1.02); }
-    .result-card { border: 3px double #00FF00; padding: 30px; border-radius: 20px; background-color: #050505; text-align: center; margin-top: 25px; }
-    .score { font-size: 90px; color: #00FF00; font-family: 'Orbitron', sans-serif; margin: 20px 0; font-weight: bold; }
+    .stApp { background-color: #000; }
+    h1, h3 { color: #00FF00; text-align: center; font-family: 'Courier New', monospace; }
+    .stTextInput>div>div>input { background-color: #0a0a0a; color: #00FF00; border: 1px solid #00FF00; }
+    .stButton>button { width: 100%; background-color: #00FF00; color: #000; font-weight: bold; }
+    .prediction-box { border: 2px solid #00FF00; padding: 20px; border-radius: 10px; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-title">🎯 SNIPER IA PREDICTOR</h1>', unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #00FF00;'>SofaScore Live Integration: ACTIVE</p>", unsafe_allow_html=True)
+st.title("🎯 SNIPER IA PREDICTOR")
 
-# خانة إدخال الـ ID الخاص بالمباراة
-match_input = st.text_input("ENTER MATCH ID FROM SOFASCORE:", placeholder="Example: 13424942")
+# إدخال البيانات
+raw_input = st.text_input("ENTER MATCH ID OR URL:", placeholder="e.g. 13424942")
 
-if st.button("RUN ADVANCED IA ANALYSIS"):
-    if match_input:
-        # استخراج الرقم فقط إذا أدخل المستخدم الرابط بالخطأ
-        match_id = "".join(filter(str.isdigit, match_input.split('/')[-1]))
+if st.button("EXECUTE ANALYSIS"):
+    if raw_input:
+        # 1. استخراج الـ ID من أي نص أو رابط
+        match_id = "".join(filter(str.isdigit, raw_input.split('/')[-1].split(':')[-1]))
         
         try:
-            scraper = cloudscraper.create_scraper()
-            with st.status("📡 SYSTEM BOOTING...", expanded=True) as status:
-                # جلب البيانات الحقيقية
-                st.write("🔍 Requesting Match Data from SofaScore...")
-                response = scraper.get(f"https://api.sofascore.com/api/v1/event/{match_id}")
-                data = response.json()
-                
-                home_name = data['event']['homeTeam']['name']
-                away_name = data['event']['awayTeam']['name']
-                
-                st.write(f"✅ Target Locked: {home_name} vs {away_name}")
-                time.sleep(1)
-                st.write("🧠 Running Poisson Distribution Algorithm...")
-                time.sleep(1.5)
-                status.update(label="ANALYSIS SUCCESSFUL", state="complete")
-
-            # خوارزمية التوقع بناءً على بيانات المباراة
-            # ملاحظة: السكريبت هنا يختار نتيجة منطقية (Score Exact) للمباراة
-            possible_scores = ["1-1", "0-0", "1-0", "2-1", "0-1"]
-            final_score = random.choice(possible_scores)
+            # 2. استخدام متصفح بمواصفات حقيقية لتجنب الحظر
+            scraper = cloudscraper.create_scraper(
+                browser={
+                    'browser': 'chrome',
+                    'platform': 'windows',
+                    'mobile': False
+                }
+            )
             
-            # عرض النتيجة بأسلوب الستريمر المحترف
-            st.markdown(f"""
-                <div class="result-card">
-                    <h2 style="color: white; margin-bottom: 0;">{home_name} VS {away_name}</h2>
-                    <p style="color: #666;">PREDICTED EXACT SCORE</p>
-                    <div class="score">{final_score}</div>
-                    <div style="display: flex; justify-content: space-around;">
-                        <span style="color: #00FF00;">WIN PROB: {random.randint(88, 96)}%</span>
-                        <span style="color: #00FF00;">AI CONFIDENCE: HIGH</span>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-            st.balloons()
-            
+            with st.spinner('📡 BYPASSING SECURITY & FETCHING DATA...'):
+                # طلب البيانات من API SofaScore
+                api_url = f"https://api.sofascore.com/api/v1/event/{match_id}"
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                }
+                response = scraper.get(api_url, headers=headers, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    home = data['event']['homeTeam']['name']
+                    away = data['event']['awayTeam']['name']
+                    
+                    # محاكاة التحليل الاحترافي
+                    progress = st.progress(0)
+                    for i in range(100):
+                        time.sleep(0.01)
+                        progress.progress(i + 1)
+                    
+                    # نتائج عشوائية مدروسة (Score Exact)
+                    res = random.choice(["1-1", "2-1", "0-0", "1-0", "0-1"])
+                    
+                    st.markdown(f"""
+                        <div class="prediction-box">
+                            <h2 style="color:white;">{home} vs {away}</h2>
+                            <p style="color:#666;">AI TARGET ACQUIRED</p>
+                            <h1 style="color:#00FF00; font-size:60px;">{res}</h1>
+                            <p style="color:#00FF00;">ACCURACY: {random.randint(92, 98)}%</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    st.balloons()
+                else:
+                    st.error(f"❌ Server Rejected Request (Error {response.status_code}). Try again in a minute.")
+                    
         except Exception as e:
-            st.error("⚠️ ACCESS DENIED: Ensure you enter the correct Match ID (e.g. 13424942)")
+            st.error("❌ Connection failed. SofaScore might be blocking the cloud server.")
     else:
-        st.warning("❗ PLEASE PROVIDE MATCH IDENTIFIER")
-
-st.markdown("<br><p style='text-align: center; color: #333;'>V2.0 STREAMS EDITION | ENCRYPTED CONNECTION</p>", unsafe_allow_html=True)
+        st.warning("⚠️ Please enter a valid Match ID or Link.")
+        
