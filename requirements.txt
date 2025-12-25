@@ -3,3 +3,5 @@ cloudscraper
 beautifulsoup4
 pandas
 requests
+customtkinter
+cloudscraper
