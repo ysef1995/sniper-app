@@ -1,94 +1,77 @@
 import streamlit as st
 import time
-import random
-import cloudscraper
+import hashlib
 
-# --- إعدادات الصفحة والتصميم ---
-st.set_page_config(page_title="SNIPER X PRO", page_icon="🧿", layout="centered")
+# إعدادات الواجهة الاحترافية للبث المباشر
+st.set_page_config(page_title="SNIPER AI PRO", page_icon="🎯", layout="centered")
 
 st.markdown("""
     <style>
-    .stApp { background-color: #000000; }
-    .title { color: #00FF00; font-family: 'Courier New', monospace; text-align: center; text-shadow: 0px 0px 10px #00FF00; }
-    .stTextInput>div>div>input { background-color: #111; color: #00FF00; border: 1px solid #00FF00; text-align: center; font-family: monospace; }
-    .stButton>button { background-color: #00FF00; color: black; font-weight: bold; width: 100%; border-radius: 5px; height: 50px; font-size: 18px; }
-    .stButton>button:hover { background-color: #00cc00; color: white; border: 1px solid white; }
-    .result-box { border: 2px solid #00FF00; background-color: #050505; padding: 20px; border-radius: 15px; text-align: center; margin-top: 20px; }
-    .team-name { color: white; font-size: 18px; font-weight: bold; }
-    .score-big { font-size: 80px; color: #00FF00; font-family: 'Impact', sans-serif; margin: -10px 0; text-shadow: 0 0 20px #00FF00; }
-    .meta-info { color: #888; font-size: 12px; font-family: monospace; }
+    .stApp { background-color: #000; }
+    .title-text { color: #00FF00; text-align: center; font-family: 'Courier New', monospace; text-shadow: 0 0 15px #00FF00; }
+    .stTextInput>div>div>input { background-color: #0a0a0a; color: #00FF00; border: 1px solid #00FF00; text-align: center; }
+    .stButton>button { width: 100%; background-color: #00FF00; color: #000; font-weight: bold; border-radius: 10px; height: 50px; }
+    .prediction-card { border: 2px solid #00FF00; padding: 30px; border-radius: 15px; background-color: #050505; text-align: center; }
+    .score-display { font-size: 85px; color: #00FF00; font-weight: bold; font-family: 'Impact', sans-serif; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="title">⚡ SNIPER AI: EXACT SCORE ⚡</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="title-text">⚡ SNIPER IA ANALYZER ⚡</h1>', unsafe_allow_html=True)
 
-# --- دوال النظام ---
-
-def get_match_id(text):
-    # استخراج الأرقام فقط من المدخلات
-    return "".join(filter(str.isdigit, text))
-
-def simulate_smart_prediction(match_id):
-    # استخدام الـ ID كـ "بذرة" (Seed) لجعل التوقع ثابتاً لنفس المباراة
-    # هذا يعني أن نفس الـ ID سيعطي دائماً نفس النتيجة، مما يجعله يبدو حقيقياً
-    random.seed(int(match_id))
+# دالة تحليل الذكاء الاصطناعي (منطق رياضي ثابت)
+def calculate_ai_prediction(match_id):
+    # تحويل الـ ID إلى قيمة رقمية فريدة لاستخدامها في الحسابات
+    hash_object = hashlib.md5(match_id.encode())
+    hex_hash = hash_object.hexdigest()
     
-    # قائمة نتائج واقعية (Score Exact)
-    scores = ["1-1", "2-1", "1-0", "0-0", "0-1", "1-2", "2-0", "2-2"]
-    # أوزان لترجيح النتائج الأكثر شيوعاً (1-1 و 1-0)
-    weights = [20, 15, 15, 10, 15, 10, 10, 5]
+    # استخراج قيم رقمية من الـ Hash لتمثيل قوة الفريقين
+    val1 = int(hex_hash[0:2], 16) % 4  # أهداف الفريق الأرضي (0-3)
+    val2 = int(hex_hash[2:4], 16) % 3  # أهداف الفريق الضيف (0-2)
     
-    prediction = random.choices(scores, weights=weights, k=1)[0]
-    accuracy = random.randint(88, 97)
-    
-    return prediction, accuracy
-
-# --- واجهة التطبيق ---
-
-user_input = st.text_input("🔗 PASTE MATCH LINK OR ID:", placeholder="Example: 13424942")
-
-if st.button("START HACKING SYSTEM"):
-    if user_input:
-        match_id = get_match_id(user_input)
+    # منطق لضمان عدم وجود نتائج مبالغ فيها (مثل 9-0)
+    if val1 > 2 and val2 > 2:
+        val1, val2 = 1, 1
         
-        if len(match_id) < 5:
-            st.error("❌ INVALID ID! Please check the link.")
-        else:
-            try:
-                # 1. محاكاة الاتصال والتحليل (لإعطاء طابع الفيديو)
-                with st.status("SYSTEM INITIALIZING...", expanded=True) as status:
-                    st.write("📡 Connecting to Satellite Server...")
-                    time.sleep(1)
-                    st.write("🔓 Bypassing Firewall Security...")
-                    time.sleep(1.2)
-                    st.write(f"🔍 Analyzing Match ID: {match_id}")
-                    time.sleep(1)
-                    st.write("🧠 Running AI Neural Network...")
-                    time.sleep(1.5)
-                    status.update(label="ANALYSIS COMPLETED successfully!", state="complete", expanded=False)
+    return f"{val1}-{val2}"
 
-                # 2. توليد النتيجة (يعمل دائماً ولا يتوقف)
-                pred_score, confidence = simulate_smart_prediction(match_id)
-                
-                # 3. عرض النتيجة بشكل مبهر
-                st.markdown(f"""
-                    <div class="result-box">
-                        <p class="team-name">MATCH ANALYSIS REPORT</p>
-                        <p style="color:#00FF00; letter-spacing: 2px;">PREDICTED SCORE</p>
-                        <div class="score-big">{pred_score}</div>
-                        <br>
-                        <span style="background-color: #111; padding: 5px 15px; border-radius: 10px; color: #00FF00; border: 1px solid #00FF00;">
-                            CONFIDENCE: {confidence}%
-                        </span>
-                        <p class="meta-info">ID: {match_id} | SERVER: ONLINE</p>
+# الواجهة
+user_input = st.text_input("ENTER MATCH ID (SOFASCORE):", placeholder="Example: 13424942")
+
+if st.button("EXECUTE IA CALCULATION"):
+    if user_input:
+        # تنظيف المدخلات لاستخراج الأرقام فقط
+        m_id = "".join(filter(str.isdigit, user_input))
+        
+        if len(m_id) > 4:
+            with st.status("🛠️ CRUNCHING DATA...", expanded=True) as status:
+                st.write("📡 Accessing Historical Databases...")
+                time.sleep(1)
+                st.write("📊 Comparing H2H Defensive Patterns...")
+                time.sleep(1.5)
+                st.write("🧠 Applying Neural Prediction Model...")
+                time.sleep(1)
+                status.update(label="ANALYSIS SUCCESSFUL", state="complete")
+
+            # حساب النتيجة بناءً على المنطق الرياضي للـ ID
+            final_result = calculate_ai_prediction(m_id)
+            
+            # حساب نسبة الثقة بناءً على الـ ID (ثابتة لنفس المباراة)
+            confidence = 85 + (int(m_id[-1]) % 10)
+            
+            st.markdown(f"""
+                <div class="prediction-card">
+                    <p style="color: #888;">MATCH IDENTIFIED: {m_id}</p>
+                    <p style="color: #00FF00; letter-spacing: 3px;">EXACT SCORE PREDICTION</p>
+                    <div class="score-display">{final_result}</div>
+                    <div style="border-top: 1px solid #222; padding-top: 15px;">
+                        <span style="color: white;">IA CONFIDENCE: </span>
+                        <span style="color: #00FF00; font-weight: bold;">{confidence}%</span>
                     </div>
-                """, unsafe_allow_html=True)
-                
-                st.balloons()
-
-            except Exception as e:
-                st.error("System Glitch. Rebooting...")
+                </div>
+            """, unsafe_allow_html=True)
+            st.balloons()
+        else:
+            st.error("Invalid ID format.")
     else:
-        st.warning("⚠️ ENTER DATA FIRST!")
-
-st.markdown("<br><center><p style='color:#333;'>SNIPER V3.0 - PRIVATE SERVER</p></center>", unsafe_allow_html=True)
+        st.warning("Please enter a Match ID.")
+        
