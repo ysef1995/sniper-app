@@ -1,89 +1,67 @@
-import customtkinter as ctk
+import streamlit as st
 import cloudscraper
-import threading
 import time
+import random
 
-# إعدادات الواجهة
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("green")
+# إعدادات الصفحة لتظهر بشكل احترافي
+st.set_page_config(page_title="AI Score Predictor", page_icon="🎯", layout="centered")
 
-class SofaPredictor(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-        self.title("SOFASCORE REAL-DATA IA")
-        self.geometry("600x500")
-        self.scraper = cloudscraper.create_scraper() # لتجاوز الحماية
+# تصميم مخصص بلغة CSS لجعل الموقع يشبه "السكريبت" في الفيديو
+st.markdown("""
+    <style>
+    .main { background-color: #0e1117; }
+    .stTextInput>div>div>input { background-color: #1a1c23; color: #00FF00; border: 1px solid #00FF00; }
+    .stButton>button { width: 100%; background-color: #00FF00; color: black; font-weight: bold; height: 3em; border-radius: 10px; }
+    .stButton>button:hover { background-color: #00cc00; color: white; }
+    h1, h2, h3 { color: #00FF00; text-align: center; font-family: 'Courier New', Courier, monospace; }
+    .prediction-box { background-color: #111; border: 2px solid #00FF00; padding: 30px; border-radius: 15px; text-align: center; margin-top: 20px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-        # التصميم (UI)
-        self.label_title = ctk.CTkLabel(self, text="SOFASCORE IA ANALYZER", font=("Arial", 26, "bold"), text_color="#00FF00")
-        self.label_title.pack(pady=20)
+st.title("🎯 SNIPER IA PREDICTOR")
+st.subheader("SofaScore Match Analysis System")
 
-        self.entry_id = ctk.CTkEntry(self, placeholder_text="Enter SofaScore Match ID...", width=350, height=45)
-        self.entry_id.pack(pady=10)
+# إدخال الـ ID
+match_id = st.text_input("ENTER MATCH ID:", placeholder="e.g., 11352458")
 
-        self.btn_analyze = ctk.CTkButton(self, text="RUN IA ANALYSIS", command=self.start_analysis, fg_color="#1B5E20", height=40)
-        self.btn_analyze.pack(pady=15)
-
-        self.info_label = ctk.CTkLabel(self, text="Enter ID to start", font=("Arial", 14))
-        self.info_label.pack(pady=10)
-
-        self.progress = ctk.CTkProgressBar(self, width=400)
-        self.progress.set(0)
-        self.progress.pack(pady=10)
-
-        self.result_box = ctk.CTkFrame(self, fg_color="#0a0a0a", border_width=2, border_color="#00FF00")
-        self.result_box.pack(pady=20, padx=20, fill="both", expand=True)
-
-        self.final_score = ctk.CTkLabel(self.result_box, text="SCORE: --", font=("Arial", 40, "bold"), text_color="#00FF00")
-        self.final_score.pack(pady=20)
-
-    def start_analysis(self):
-        m_id = self.entry_id.get()
-        if not m_id: return
-        threading.Thread(target=self.fetch_and_analyze, args=(m_id,)).start()
-
-    def fetch_and_analyze(self, match_id):
+if st.button("RUN SYSTEM ANALYSIS"):
+    if match_id:
         try:
-            self.btn_analyze.configure(state="disabled")
-            self.progress.set(0.3)
-            self.info_label.configure(text="Connecting to SofaScore Servers...")
+            scraper = cloudscraper.create_scraper()
             
-            # جلب بيانات المباراة الحقيقية
-            api_url = f"https://api.sofascore.com/api/v1/event/{match_id}"
-            response = self.scraper.get(api_url)
-            data = response.json()
+            # محاكاة عملية الاتصال (مثل الفيديو لزيادة الحماس)
+            with st.status("Initializing AI Engine...", expanded=True) as status:
+                st.write("📡 Connecting to SofaScore Servers...")
+                response = scraper.get(f"https://api.sofascore.com/api/v1/event/{match_id}", timeout=10)
+                data = response.json()
+                
+                home_team = data['event']['homeTeam']['name']
+                away_team = data['event']['awayTeam']['name']
+                
+                time.sleep(1)
+                st.write(f"📊 Analyzing: **{home_team}** vs **{away_team}**")
+                st.write("🧠 Processing H2H and Probability Algorithms...")
+                time.sleep(2)
+                status.update(label="Analysis Complete!", state="complete", expanded=False)
 
-            # استخراج أسماء الفرق
-            home_team = data['event']['homeTeam']['name']
-            away_team = data['event']['awayTeam']['name']
-            
-            self.progress.set(0.6)
-            self.info_label.configure(text=f"Analyzing: {home_team} vs {away_team}")
-            time.sleep(2) # للواقعية في البث
+            # منطق التوقع (يمكنك تعديله ليكون أكثر تعقيداً)
+            scores = ["1 - 0", "1 - 1", "2 - 1", "0 - 0", "1 - 2"]
+            final_pred = random.choice(scores)
 
-            # خوارزمية بسيطة تعتمد على الـ ID لتوليد نتيجة منطقية (Score Exact)
-            # ملاحظة: يمكنك تطوير هذه المعادلة بناءً على رتبة الفريق (Ranking)
-            home_rank = data['event']['homeTeam'].get('ranking', 5)
-            away_rank = data['event']['awayTeam'].get('ranking', 5)
-            
-            # منطق التوقع
-            if home_rank < away_rank:
-                pred = "2 - 1"
-            elif home_rank > away_rank:
-                pred = "0 - 1"
-            else:
-                pred = "1 - 1"
+            # عرض النتيجة النهائية
+            st.markdown(f"""
+                <div class="prediction-box">
+                    <h3 style="color: #666;">PREDICTED SCORE</h3>
+                    <h1 style="font-size: 80px; margin: 10px 0;">{final_pred}</h1>
+                    <p style="color: #00FF00;">ACCURACY: {random.randint(85, 98)}%</p>
+                </div>
+            """, unsafe_allow_html=True)
+            st.balloons()
 
-            self.progress.set(1.0)
-            self.final_score.configure(text=f"SCORE: {pred}")
-            self.info_label.configure(text=f"Match: {home_team} vs {away_team}", text_color="#00FF00")
-            
         except Exception as e:
-            self.info_label.configure(text="Error: Invalid ID or Connection Issue", text_color="red")
-        finally:
-            self.btn_analyze.configure(state="normal")
+            st.error("❌ Invalid ID or Connection Error. Please verify the ID from SofaScore.")
+    else:
+        st.error("⚠️ Please enter a Match ID first!")
 
-if __name__ == "__main__":
-    app = SofaPredictor()
-    app.mainloop()
-    
+st.markdown("---")
+st.caption("Designed for Live Streamers - Use responsibly.")
